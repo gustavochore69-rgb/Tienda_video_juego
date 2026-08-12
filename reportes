@@ -1,0 +1,2 @@
+// Módulo de Reportes
+console.log("Módulo de reportes cargado correctamente");
