@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PixelStore — Tienda de videojuegos</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="logo">🎮</div>
+        <div class="brand-text">
+          <h1>PixelStore</h1>
+          <small>Tu tienda de videojuegos</small>
+        </div>
+      </div>
+
+      <form class="search" id="searchForm" role="search">
+        <input type="search" id="searchInput" placeholder="Buscar juegos, desarrolladores..." />
+        <button type="submit">Buscar</button>
+      </form>
+
+      <nav class="actions">
+        <button id="loginBtn" class="btn-outline">Iniciar sesión</button>
+        <button id="cartBtn" class="btn-primary">Carrito (0)</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-overlay"></div>
+      <div class="container hero-content">
+        <h2>Bienvenido a PixelStore</h2>
+        <p>Encuentra tus juegos favoritos, ofertas y novedades — todo en un solo lugar.</p>
+        <div class="hero-actions">
+          <button id="exploreBtn" class="btn-cta">Explorar juegos</button>
+          <a href="#destacados" class="link-light">Ver destacados ↓</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="categories container" aria-label="Categorías">
+      <button class="cat active">Todos</button>
+      <button class="cat">Acción</button>
+      <button class="cat">Aventura</button>
+      <button class="cat">Indie</button>
+      <button class="cat">RPG</button>
+      <button class="cat">Simulación</button>
+      <button class="cat">Estrategia</button>
+    </section>
+
+    <section id="destacados" class="destacados container">
+      <h3>Destacados</h3>
+      <div class="cards">
+        <article class="card">
+  <img src="https://zeldacentral.com/wp-content/uploads/2025/03/Tears-of-the-Kingdom-wallpaper.jpg" alt="Portada juego 1">
+  <div class="card-body">
+    <h4>Zelda Tears of the Kingdom</h4>
+    <p class="genre">Ciencia ficción · Acción</p>
+    <div class="card-actions">
+      <button class="btn-outline">Ver</button>
+      <button class="btn-primary">Añadir</button>
+    </div>
+  </div>
+</article>
+
+        <article class="card">
+          <img src="https://static0.gamerantimages.com/wordpress/wp-content/uploads/2024/12/mixcollage-07-dec-2024-08-04-am-836.jpg" alt="Portada juego 2">
+          <div class="card-body">
+            <h4>Hollow Knight</h4>
+            <p class="genre">Aventura · Indie</p>
+            <div class="card-actions">
+              <button class="btn-outline">Ver</button>
+              <button class="btn-primary">Añadir</button>
+            </div>
+          </div>
+        </article>
+        
+        <article class="card">
+          <img src="https://livewallpapers4free.com/wp-content/uploads/2026/02/leon-resident-evil-9-requiem-HD-live_thumb1.jpg" alt="Portada juego 2">
+          <div class="card-body">
+            <h4>Resident Evil Requiem</h4>
+            <p class="genre">Aventura · Acción . Survival</p>
+            <div class="card-actions">
+              <button class="btn-outline">Ver</button>
+              <button class="btn-primary">Añadir</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="https://store-images.s-microsoft.com/image/apps.60323.14294656681058683.4d17bdd8-7026-429a-846f-cf7836bc9e56.a69e6905-8926-4a48-b243-14a039b97aae?mode=scale&q=90&h=1080&w=1920&format=jpg" alt="Portada juego 2">
+          <div class="card-body">
+            <h4>Minecraft</h4>
+            <p class="genre">Aventura . Survival</p>
+            <div class="card-actions">
+              <button class="btn-outline">Ver</button>
+              <button class="btn-primary">Añadir</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="https://images7.alphacoders.com/821/821837.jpg" alt="Portada juego 2">
+          <div class="card-body">
+            <h4>Mario kart 8 Deluxe</h4>
+            <p class="genre">Aventura . Carrera</p>
+            <div class="card-actions">
+              <button class="btn-outline">Ver</button>
+              <button class="btn-primary">Añadir</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <img src="https://tse3.mm.bing.net/th/id/OIP.c1vwbnONVXlpJgBnzS6xZwHaEK?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="Portada juego 3">
+          <div class="card-body">
+            <h4>Legado de Héroes</h4>
+            <p class="genre">Accion · Fantasía. Mundo abierto</p>
+            <div class="card-actions">
+              <button class="btn-outline">Ver</button>
+              <button class="btn-primary">Añadir</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <h5>PixelStore</h5>
+          <p>© <span id="year"></span> PixelStore — Todos los derechos reservados.</p>
+        </div>
+        <div>
+          <h5>Enlaces</h5>
+          <ul>
+            <li><a href="#">Ayuda</a></li>
+            <li><a href="#">Contacto</a></li>
+            <li><a href="#">Términos</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Síguenos</h5>
+          <div class="socials">Twitter · Instagram · Discord</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+
+  <!-- Modal de Iniciar sesión -->
+<div id="loginModal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="true"></div>
+
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalLoginTitle">
+    <button class="modal-close" aria-label="Cerrar" title="Cerrar">✕</button>
+
+    <div class="login-card" role="main" aria-labelledby="modalLoginTitle" style="box-shadow:none;background:transparent;border:none;padding:0">
+      <h2 id="modalLoginTitle">Iniciar sesión</h2>
+      <p class="lead">Ingresa con tu cuenta. Usa las cuentas demo para probar roles.</p>
+
+      <div id="msgModal" class="msg" role="status" aria-live="polite" style="display:none"></div>
+
+      <form id="loginFormModal" autocomplete="off">
+        <div class="field">
+          <label for="userInputModal">Usuario o correo</label>
+          <input id="userInputModal" name="user" type="text" placeholder="usuario o correo">
+        </div>
+
+        <div class="field">
+          <label for="pwInputModal">Contraseña</label>
+          <div class="pw-row">
+            <input id="pwInputModal" name="password" type="password" placeholder="contraseña" style="flex:1">
+            <button type="button" id="togglePwModal" class="btn-inline" aria-pressed="false">Mostrar</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+          <button type="submit" class="btn-primary" style="flex:1">Iniciar sesión</button>
+          <button type="button" id="btnDemoModal" class="btn-outline">Rellenar demo</button>
+        </div>
+        
+      </form>
+
+      <div class="demo-accounts" aria-hidden="false">
+        <div style="font-weight:600;margin-top:12px">Cuentas demo</div>
+        <ul>
+          <li>
+            <div>
+              <strong>moderador</strong><br><small class="text-muted">rol: Moderador</small>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:0.85rem;color:var(--muted)">moder.pixel</div>
+              <div style="font-size:0.85rem;color:var(--muted)">modpass</div>
+              <button class="copy-btn modal-copy" data-user="mod@pixel.test" data-pass="modpass">Copiar</button>
+            </div>
+          </li>
+
+          <li>
+            <div>
+              <strong>ver</strong><br><small class="text-muted">rol: Comprador</small>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:0.85rem;color:var(--muted)">ver.pixel</div>
+              <div style="font-size:0.85rem;color:var(--muted)">verpass</div>
+              <button class="copy-btn modal-copy" data-user="ver@pixel.test" data-pass="verpass">Copiar</button>
+            </div>
+          </li>
+
+          <li>
+            <div>
+              <strong>vendedor</strong><br><small class="text-muted">rol: Vendedor</small>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:0.85rem;color:var(--muted)">Vendedor.pixel</div>
+              <div style="font-size:0.85rem;color:var(--muted)">Venderdor123</div>
+              <button class="copy-btn modal-copy" data-user="seller@pixel.test" data-pass="sellerpass">Copiar</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

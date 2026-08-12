@@ -1,0 +1,404 @@
+/* Variables */
+:root{
+  --bg: #0b0b0d;
+  --card: #111215;
+  --muted: #9aa1a6;
+
+  --accent: #ff002f;
+  --accent-2: #00e5ff;
+  --accent-rgb: 255,0,47;
+  --accent2-rgb: 0,229,255;
+
+  --glass: rgba(255,255,255,0.04);
+  --radius: 12px;
+  --maxw: 1100px;
+
+  font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Reset */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #060607 0%, var(--bg) 100%);
+  color: #e6eef3;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.4;
+}
+
+.container {
+  width: 90%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(6px);
+  background: linear-gradient(0deg, rgba(5,5,5,0.6), rgba(5,5,5,0.3));
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.header-inner {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 14px 0;
+}
+.brand { display:flex; align-items:center; gap:0.8rem; }
+.logo { font-size: 28px; }
+.brand-text h1 { margin:0; font-size:1rem; letter-spacing:0.6px; }
+.brand-text small { display:block; color:var(--muted); font-size:12px; }
+
+/* Search */
+.search { flex:1; display:flex; max-width:540px; }
+.search input {
+  flex:1;
+  padding:8px 12px;
+  border-radius:8px 0 0 8px;
+  border:1px solid rgba(255,255,255,0.06);
+  background: var(--glass);
+  color: inherit;
+  outline: none;
+}
+.search button {
+  padding:8px 12px;
+  border-radius:0 8px 8px 0;
+  border:1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* Actions (botones header) */
+.actions { display:flex; gap:0.6rem; }
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.btn-primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #070607;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Hero */
+.hero {
+  min-height: 56vh;
+  display:flex;
+  align-items:center;
+  position:relative;
+  margin-top:18px;
+  border-radius:16px;
+  overflow:hidden;
+}
+.hero::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=1600&auto=format&fit=crop');
+  background-size:cover;
+  background-position:center;
+  transform: scale(1.05);
+  filter: blur(1px) brightness(0.45);
+}
+.hero-overlay { position:absolute; inset:0; background: linear-gradient(180deg, rgba(3,3,4,0.2), rgba(4,4,5,0.6)); }
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 48px 18px;
+  color: #fff;
+}
+.hero-content h2 { font-size: 2.2rem; margin: 0 0 8px; }
+.hero-content p { color: var(--muted); margin: 0 0 18px; }
+.hero-actions { display:flex; gap:12px; align-items:center; }
+.btn-cta {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.link-light { color: rgba(255,255,255,0.85); text-decoration:none; font-size:0.95rem; }
+
+/* Categories */
+.categories { display:flex; gap:8px; padding:18px 0; overflow:auto; }
+.cat {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cat.active {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #070607;
+  border: 0;
+}
+
+/* Destacados */
+.destacados { padding: 28px 0; }
+.destacados h3 { margin: 0 0 14px; }
+.cards { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; }
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  display:flex;
+  flex-direction:column;
+}
+.card img { width:100%; height:160px; object-fit:cover; }
+.card-body { padding:12px; display:flex; flex-direction:column; gap:8px; }
+.card-body h4 { margin:0; font-size:1.05rem; }
+.genre { color: var(--muted); font-size:13px; margin:0; }
+.card-actions { display:flex; gap:8px; margin-top:auto; justify-content:flex-end; }
+
+/* Footer */
+.site-footer {
+  padding:22px 0;
+  color: var(--muted);
+  border-top: 1px solid rgba(255,255,255,0.03);
+  margin-top:36px;
+}
+.footer-grid { display:grid; grid-template-columns: 1fr 160px 160px; gap:18px; }
+.site-footer a { color: var(--muted); text-decoration:none; }
+
+/* Responsive */
+@media (max-width:900px) {
+  .cards { grid-template-columns: repeat(2,1fr); }
+  .hero-content h2 { font-size:1.6rem; }
+  .search { display:none; }
+}
+@media (max-width:600px) {
+  .cards { grid-template-columns: 1fr; }
+  .header-inner { align-items:flex-start; flex-direction:column; gap:10px; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .hero { min-height:44vh; }
+}
+
+/* Efectos globales: botones y tarjetas */
+button,
+button[class*="btn"],
+.actions button,
+.search button,
+.card .card-actions button,
+.cat {
+  transition:
+    transform 200ms cubic-bezier(.2,.9,.2,1),
+    box-shadow 240ms cubic-bezier(.2,.9,.2,1),
+    filter 180ms cubic-bezier(.2,.9,.2,1),
+    background-color 160ms ease;
+  will-change: transform, box-shadow, filter;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+/* Hover base */
+button:hover,
+button[class*="btn"]:hover,
+.actions button:hover,
+.search button:hover,
+.card .card-actions button:hover,
+.cat:hover {
+  transform: translateY(-6px);
+}
+
+/* Active (press) */
+button:active,
+button[class*="btn"]:active,
+.cat:active,
+.card .card-actions button:active {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+}
+
+/* Focus */
+button:focus,
+button[class*="btn"]:focus,
+.cat:focus,
+.card .card-actions button:focus {
+  outline: 3px solid rgba(var(--accent-rgb),0.12);
+  outline-offset: 4px;
+  box-shadow: 0 18px 44px rgba(var(--accent-rgb),0.06);
+}
+
+/* btn-primary (Carrito, Añadir) */
+.btn-primary:hover,
+.card .btn-primary:hover {
+  box-shadow:
+    0 28px 60px rgba(var(--accent-rgb),0.18),
+    0 8px 24px rgba(var(--accent2-rgb),0.06);
+  filter: brightness(1.08) saturate(1.06);
+}
+
+/* btn-cta (Explorar) */
+.btn-cta:hover {
+  box-shadow: 0 30px 70px rgba(var(--accent-rgb),0.26);
+  border-color: rgba(var(--accent-rgb),0.95);
+  color: #ff0000;
+  background: linear-gradient(90deg, rgba(var(--accent-rgb),0.06), rgba(var(--accent2-rgb),0.02));
+  filter: brightness(1.06);
+}
+
+/* btn-outline (Iniciar sesión, Ver) */
+.btn-outline:hover,
+.card .btn-outline:hover {
+  box-shadow: 0 14px 36px rgba(255, 0, 0, 0.05);
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.02);
+  color: #ffffff;
+}
+
+/* Chips: no activos */
+.cat {
+  transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms;
+}
+.cat:not(.active):hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 18px 44px rgba(255,255,255,0.035);
+  border-color: rgba(255,255,255,0.08);
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: #f8f8f8;
+}
+
+/* Chip activo: no cambia de color, solo eleva y brilla */
+.cat.active:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 22px 56px rgba(var(--accent-rgb),0.20),
+    0 8px 24px rgba(var(--accent2-rgb),0.04);
+  filter: brightness(1.04) saturate(1.06);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #070607;
+  border: 0;
+}
+
+/* Tarjetas */
+.card {
+  transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms;
+  will-change: transform, box-shadow;
+  transform-origin: center bottom;
+}
+.card img {
+  transition: transform 280ms cubic-bezier(.2,.9,.2,1), filter 280ms;
+  will-change: transform, filter;
+  display:block;
+  backface-visibility: hidden;
+  transform-origin: center center;
+}
+.card:hover {
+  transform: translateY(-12px);
+  box-shadow:
+    0 40px 90px rgb(2, 2, 4),
+    0 10px 30px rgba(var(--accent-rgb),0.08);
+}
+.card:hover img {
+  transform: scale(1.06) translateY(-6px);
+  filter: brightness(1.06) saturate(1.06);
+}
+.card img:hover {
+  transform: scale(1.06) translateY(-6px);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  button,
+  button[class*="btn"],
+  .cat,
+  .card,
+  .card img {
+    transition: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Modal - login */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+}
+.modal.open { display: flex; }
+
+/* Fondo semi-transparente */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2,2,4,0.62);
+  backdrop-filter: blur(4px);
+}
+
+/* Dialog */
+.modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 16px;
+  z-index: 121;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: translateY(8px);
+  opacity: 0;
+  transition: transform 220ms ease, opacity 200ms ease;
+}
+.modal.open .modal-dialog {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Reuso de .login-card, pero con fondo propio */
+.modal .login-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+}
+
+/* Close button */
+.modal-close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background: transparent;
+  border: 0;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+}
+.modal-close:hover { transform: translateY(-2px); }
+
+/* Mensajes dentro del modal (usa las mismas clases .msg de tu CSS) */
+#msgModal.msg { display: none; margin-bottom: 8px; }
+#msgModal.msg.error { display:block; background: rgba(255,20,20,0.08); color: #ffb7b7; padding:10px; border-radius:8px; }
+#msgModal.msg.success { display:block; background: rgba(0,200,80,0.06); color: #c8ffd6; padding:10px; border-radius:8px; }
+
+/* Ajustes responsive del modal */
+@media (max-width:480px) {
+  .modal-dialog { margin: 8px; }
+  .modal .login-card { padding:16px; }
+}
