@@ -554,13 +554,32 @@ const App = {
     // Iniciar sesión desde el modal de producto
     document.getElementById('btn-login-from-review')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 
-    // Modals
-    document.getElementById('modal-backdrop')?.addEventListener('click', e => {
-      if (e.target === document.getElementById('modal-backdrop')) this.setState({ modal: null });
+   // Modals
+    document.querySelectorAll('#modal-backdrop, #login-modal').forEach(backdrop => {
+      backdrop.addEventListener('click', e => {
+        if (e.target === backdrop) this.setState({ modal: null });
+      });
     });
-    document.getElementById('btn-close-modal')?.addEventListener('click', () => this.setState({ modal: null }));
-    document.getElementById('btn-switch-register')?.addEventListener('click', () => this.setState({ modal: 'register' }));
-    document.getElementById('btn-switch-login')?.addEventListener('click', () => this.setState({ modal: 'login' }));
+    
+    // Cierra con la equis (#btn-close-login, #btn-close-modal, etc.)
+    document.querySelectorAll('#btn-close-modal, #btn-close-login, .modal-close, .btn-close, [data-close]').forEach(btn => {
+      btn.addEventListener('click', () => this.setState({ modal: null }));
+    });
+
+    // Enlaces para cambiar entre Login y Registro
+    document.querySelectorAll('#btn-switch-register, #link-open-register').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        this.setState({ modal: 'register' });
+      });
+    });
+
+    document.querySelectorAll('#btn-switch-login, #link-open-login').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        this.setState({ modal: 'login' });
+      });
+    });
 
     // Login form (Conexión corregida directamente con this.login)
     const loginForm = document.getElementById('login-form') || document.getElementById('form-login');
