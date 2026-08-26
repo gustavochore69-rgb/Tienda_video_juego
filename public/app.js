@@ -28,7 +28,7 @@ const App = {
     sellerRequests: JSON.parse(localStorage.getItem('ps_seller_requests') || '[]'),
   },
 
-  init() {
+  async init() {
     // Limpieza de datos de una versión anterior que incluía cupones.
     localStorage.removeItem('ps_active_coupon');
     // Restaurar tema
@@ -53,6 +53,7 @@ const App = {
     if (savedCart) {
       try { this.state.cart = JSON.parse(savedCart); } catch(e) {}
     }
+    await this.loadProducts();
     this.render();
     this.bindGlobal();
   },
@@ -405,6 +406,44 @@ const App = {
     showToast('✅ Precio y stock actualizados');
   },
 
+  async loadProducts() {
+    try {
+      const response = await fetch('/api/productos');
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo.');
+      const products = await response.json();
+      if (Array.isArray(products)) this.state.vendorProducts = products;
+    } catch (error) {
+      console.warn('Catálogo en modo demostración:', error.message);
+    }
+  },
+
+  async addProduct(data) {
+    if (this.state.currentUser?.role !== 'admin') {
+      return 'No tienes permiso para agregar productos.';
+    }
+    const title = data.title.trim();
+    const price = Number(data.price);
+    const stock = Number(data.stock);
+    const cost = Number(data.cost);
+    if (!title || !data.platform || !data.category || !Number.isFinite(cost) || cost < 0 || !Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
+      return 'Revisa el nombre, plataforma, categoría, costo, precio y stock.';
+    }
+    try {
+      const response = await fetch('/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, title, price, stock, cost })
+      });
+      const payload = await response.json();
+      if (!response.ok) return payload.error || 'No se pudo guardar el producto.';
+      this.setState({ vendorProducts: [...this.state.vendorProducts, payload], modal: null });
+      showToast('✅ Producto guardado en la base de datos.');
+      return null;
+    } catch (_error) {
+      return 'No hay conexión con el servidor. Inicia Node y MySQL para guardar.';
+    }
+  },
+
   // Gestión de usuarios (administrador)
   toggleUserBan(id) {
     if (id === this.state.currentUser?.id) return;
@@ -434,6 +473,7 @@ const App = {
       ${modal === 'login' ? renderLoginModal() : ''}
       ${modal === 'register' ? renderRegisterModal() : ''}
       ${modal === 'seller-request' ? renderSellerRequestModal() : ''}
+      ${modal === 'add-product' ? renderAddProductModal() : ''}
       ${modal === 'product' && selectedProduct ? renderProductModal(
         this.getProductById(selectedProduct.id, selectedProduct.type),
         selectedProduct.type,
@@ -559,6 +599,9 @@ const App = {
       if (e.target === document.getElementById('modal-backdrop')) this.setState({ modal: null });
     });
     document.getElementById('btn-close-modal')?.addEventListener('click', () => this.setState({ modal: null }));
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', () => this.setState({ modal: null }));
+    });
     document.getElementById('btn-switch-register')?.addEventListener('click', () => this.setState({ modal: 'register' }));
     document.getElementById('btn-switch-login')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 
@@ -640,8 +683,47 @@ const App = {
       btn.addEventListener('click', () => this.rejectSellerRequest(+btn.dataset.rejectSeller));
     });
 
-    // Vendor
-    document.getElementById('btn-add-product')?.addEventListener('click', () => showAddProductModal(this));
+    // Alta de productos exclusiva del administrador
+    document.querySelectorAll('[data-open-add-product]').forEach(btn => {
+      btn.addEventListener('click', () => this.setState({ modal: 'add-product' }));
+    });
+    document.getElementById('add-product-form')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const submitButton = event.currentTarget.querySelector('[type="submit"]');
+      const imageFile = document.getElementById('product-image').files[0];
+      let imageData = '';
+      if (imageFile) {
+        if (imageFile.size > 2 * 1024 * 1024) {
+          document.getElementById('add-product-error').textContent = 'La imagen no puede superar los 2 MB.';
+          document.getElementById('add-product-error').style.display = 'block';
+          return;
+        }
+        imageData = await readImageFile(imageFile);
+      }
+      submitButton.disabled = true;
+      submitButton.textContent = 'Guardando...';
+      const error = await this.addProduct({
+        title: document.getElementById('product-title').value,
+        platform: document.getElementById('product-platform').value,
+        category: document.getElementById('product-category').value,
+        description: document.getElementById('product-description').value,
+        cost: document.getElementById('product-cost').value,
+        price: document.getElementById('product-price').value,
+        stock: document.getElementById('product-stock').value,
+        imageData
+      });
+      if (error) {
+        const message = document.getElementById('add-product-error');
+        message.textContent = error;
+        message.style.display = 'block';
+        submitButton.disabled = false;
+        submitButton.textContent = 'Crear producto';
+      }
+    });
+    document.getElementById('product-image')?.addEventListener('change', event => {
+      const file = event.target.files[0];
+      document.getElementById('product-image-name').textContent = file ? `${file.name} (${Math.ceil(file.size / 1024)} KB)` : 'Ningún archivo seleccionado.';
+    });
     document.querySelectorAll('[data-vendor-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-vendor-tab]').forEach(b => b.classList.remove('active-tab'));
@@ -784,6 +866,15 @@ function bindLoginForm(form, app) {
   });
 }
 
+function readImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 function bindRegisterForm(form, app) {
   form.addEventListener('submit', e => {
     e.preventDefault();
@@ -804,18 +895,6 @@ function bindRegisterForm(form, app) {
   });
 }
 
-function showAddProductModal(app) {
-  const title = prompt('Nombre del producto:');
-  if (!title || !title.trim()) return;
-  const priceStr = prompt('Precio ($):');
-  const price = parseFloat(priceStr);
-  if (isNaN(price) || price <= 0) { alert('Precio inválido.'); return; }
-  const newProd = { id: Date.now(), title: title.trim(), price, stock: 0, image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg' };
-  const updated = [...app.state.vendorProducts, newProd];
-  localStorage.setItem('ps_vendor_products', JSON.stringify(updated));
-  app.setState({ vendorProducts: updated });
-  showToast('✅ Producto agregado');
-}
 
 // Start
 document.addEventListener('DOMContentLoaded', () => App.init());

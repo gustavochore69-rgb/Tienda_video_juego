@@ -395,6 +395,42 @@ function renderSellerRequestModal() {
   </div>`;
 }
 
+function renderAddProductModal() {
+  return `
+  <div id="modal-backdrop" class="modal-backdrop" style="z-index:130;">
+    <div class="modal-box" style="max-width:560px;" role="dialog" aria-modal="true" aria-labelledby="add-product-title">
+      <button id="btn-close-modal" type="button" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
+      <span class="eyebrow">Catálogo</span>
+      <h2 id="add-product-title" style="margin:0 0 6px;font-size:1.4rem;font-weight:800;color:var(--text-strong,#fff);">Agregar producto</h2>
+      <p style="margin:0 0 18px;color:var(--muted);font-size:13px;">Registra un videojuego para publicarlo en el catálogo.</p>
+      <form id="add-product-form">
+        <div style="display:grid;grid-template-columns:1fr 150px;gap:12px;">
+          <div><label class="field-label" for="product-title">Nombre del videojuego</label><input id="product-title" class="field-input" type="text" maxlength="80" required autofocus></div>
+          <div><label class="field-label" for="product-platform">Plataforma</label><select id="product-platform" class="field-input" required><option value="">Selecciona</option><option>PC</option><option>PlayStation 5</option><option>PlayStation 4</option><option>Xbox Series X|S</option><option>Nintendo Switch</option><option>Multiplataforma</option></select></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
+          <div><label class="field-label" for="product-category">Categoría</label><select id="product-category" class="field-input" required><option value="">Selecciona</option><option>Acción</option><option>Aventura</option><option>Deportes</option><option>Estrategia</option><option>RPG</option><option>Simulación</option><option>Otro</option></select></div>
+          <div><label class="field-label" for="product-stock">Stock</label><input id="product-stock" class="field-input" type="number" min="0" step="1" required></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
+          <div><label class="field-label" for="product-cost">Costo ($)</label><input id="product-cost" class="field-input" type="number" min="0" step="0.01" required></div>
+          <div><label class="field-label" for="product-price">Precio de venta ($)</label><input id="product-price" class="field-input" type="number" min="0.01" step="0.01" required></div>
+        </div>
+        <label class="field-label" for="product-image" style="margin-top:14px;">Imagen del videojuego <span style="color:var(--muted);font-weight:400;">(PNG, JPG, WEBP o GIF; máx. 2 MB)</span></label>
+        <input id="product-image" class="field-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+        <p id="product-image-name" style="margin:6px 0 0;font-size:11px;color:var(--muted);">Ningún archivo seleccionado.</p>
+        <label class="field-label" for="product-description" style="margin-top:14px;">Descripción</label>
+        <textarea id="product-description" class="field-input" rows="3" maxlength="300" placeholder="Describe el videojuego"></textarea>
+        <p id="add-product-error" role="alert" style="display:none;margin:12px 0 0;color:#ff8080;font-size:12px;"></p>
+        <div style="display:flex;justify-content:flex-end;gap:9px;margin-top:20px;">
+          <button data-close-modal type="button" style="padding:9px 13px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--surface2);color:var(--text);font:inherit;font-size:12px;cursor:pointer;">Cancelar</button>
+          <button type="submit" style="padding:9px 14px;border:0;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#070607;font:inherit;font-size:12px;font-weight:800;cursor:pointer;">Crear producto</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
 function renderProductModal(product, type, reviews, currentUser, favorites = {}) {
   if (!product) return '';
   const isGame = type === 'game';
@@ -730,9 +766,10 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
     <!-- Products Panel -->
     <div data-admin-panel="products" style="display:none;">
       <div style="background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:14px;overflow:hidden;">
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
-          <h4 style="margin:0;font-size:14px;font-weight:700;color:#eef2f4;">Catálogo de productos</h4>
-          <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Como administrador puedes eliminar productos del catálogo. La edición de precios queda a cargo del vendedor.</p>
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div><h4 style="margin:0;font-size:14px;font-weight:700;color:#eef2f4;">Catálogo de productos</h4>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Administra el catálogo: agrega o elimina productos.</p></div>
+          <button data-open-add-product style="padding:8px 13px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:0;border-radius:7px;color:#070607;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;">+ Agregar producto</button>
         </div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
@@ -860,11 +897,11 @@ function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] })
         `).join('')}
 
         <!-- Add product card -->
-        <div id="btn-add-product" style="background:var(--surface2,rgba(255,255,255,0.01));border:2px dashed var(--border,rgba(255,255,255,0.08));border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:10px;cursor:pointer;transition:border-color 200ms,background 200ms;"
+        <div style="background:var(--surface2,rgba(255,255,255,0.01));border:2px dashed var(--border,rgba(255,255,255,0.08));border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:10px;opacity:.55;"
           onmouseenter="this.style.borderColor='rgba(0,229,255,0.3)';this.style.background='rgba(0,229,255,0.03)'"
           onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.01)'">
           <div style="font-size:32px;opacity:0.4;">+</div>
-          <div style="font-size:13px;color:var(--muted);font-weight:600;">Agregar producto</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600;">Solo administradores agregan productos</div>
         </div>
       </div>
     </div>

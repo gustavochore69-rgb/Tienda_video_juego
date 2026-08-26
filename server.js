@@ -1,11 +1,63 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const fs = require('fs/promises');
+const path = require('path');
 const db = require('./db');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+// Productos: el panel de administración usa estas rutas para leer y guardar en MySQL.
+app.get('/api/productos', async (_req, res) => {
+    try {
+        const [rows] = await db.execute(`SELECT id, nombre AS title, plataforma AS platform,
+            categoria AS category, costo AS cost, precio AS price, stock,
+            imagen_url AS image, descripcion AS description
+            FROM productos ORDER BY id DESC`);
+        res.json(rows);
+    } catch (_error) {
+        res.status(500).json({ error: 'No se pudo cargar el catálogo de productos.' });
+    }
+});
+
+app.post('/api/productos', async (req, res) => {
+    const { title, platform, category, cost, price, stock, imageData = '', description = '' } = req.body;
+    const numericCost = Number(cost);
+    const numericPrice = Number(price);
+    const numericStock = Number(stock);
+
+    if (!title?.trim() || !platform || !category || !Number.isFinite(numericCost) || numericCost < 0 || !Number.isFinite(numericPrice) || numericPrice <= 0 || !Number.isInteger(numericStock) || numericStock < 0) {
+        return res.status(400).json({ error: 'Datos de producto inválidos.' });
+    }
+
+    try {
+        let image = '';
+        if (imageData) {
+            const match = /^data:image\/(png|jpeg|webp|gif);base64,([A-Za-z0-9+/=]+)$/.exec(imageData);
+            if (!match) return res.status(400).json({ error: 'El archivo de imagen no es válido.' });
+
+            const buffer = Buffer.from(match[2], 'base64');
+            if (buffer.length > 2 * 1024 * 1024) return res.status(400).json({ error: 'La imagen no puede superar los 2 MB.' });
+
+            const extension = match[1] === 'jpeg' ? 'jpg' : match[1];
+            const filename = `producto-${Date.now()}-${Math.round(Math.random() * 1e6)}.${extension}`;
+            const uploadsDir = path.join(__dirname, 'public', 'uploads');
+            await fs.mkdir(uploadsDir, { recursive: true });
+            await fs.writeFile(path.join(uploadsDir, filename), buffer);
+            image = `/uploads/${filename}`;
+        }
+        const [result] = await db.execute(
+            `INSERT INTO productos (nombre, plataforma, categoria, costo, precio, stock, imagen_url, descripcion)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [title.trim(), platform, category, numericCost, numericPrice, numericStock, image, description.trim()]
+        );
+        res.status(201).json({ id: result.insertId, title: title.trim(), platform, category, cost: numericCost, price: numericPrice, stock: numericStock, image, description: description.trim() });
+    } catch (_error) {
+        res.status(500).json({ error: 'No se pudo guardar el producto en la base de datos.' });
+    }
+});
 
 // Ruta para Registrar Cliente
 app.post('/api/registro', async (req, res) => {

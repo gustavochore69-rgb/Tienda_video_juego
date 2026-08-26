@@ -238,12 +238,18 @@ body.light .modal-box {
   outline: none;
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
+.field-input[type="file"] { padding: 8px; cursor: pointer; }
+.field-input[type="file"]::file-selector-button { margin-right: 10px; padding: 6px 9px; border: 0; border-radius: 5px; background: rgba(var(--accent2-rgb), .15); color: var(--text); font: inherit; font-size: 12px; cursor: pointer; }
+select.field-input { background-color: #1a1b1f; color: #e6eef3; color-scheme: dark; }
+select.field-input option { background-color: #1a1b1f; color: #e6eef3; }
 body.light .field-input {
   border: 1px solid rgba(0,0,0,0.15);
   background: #f8fafc;
   color: #111827;
   font-weight: 600;
 }
+body.light select.field-input { background-color: #f8fafc; color: #111827; color-scheme: light; }
+body.light select.field-input option { background-color: #ffffff; color: #111827; }
 body.light .field-input::placeholder {
   color: #8a96a3;
   font-weight: 400;
