@@ -205,26 +205,6 @@ function renderLoginModal() {
         ¿No tienes cuenta?&nbsp;
         <button id="btn-switch-register" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:0;">Regístrate gratis</button>
       </p>
-
-      <!-- Demo accounts -->
-      <div style="margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.07);">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:#cfd6db;margin-bottom:10px;">Cuentas demo</div>
-        <ul style="list-style:none;margin:0;padding:0;">
-          ${DEMO_ACCOUNTS.map(acc => `
-          <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-            <div>
-              <div style="font-size:13px;font-weight:600;color:#f2f5f7;">${acc.label}</div>
-              <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${acc.username}</div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-              <div style="font-size:11px;color:var(--muted);">${acc.password}</div>
-              <button data-demo="${acc.role}" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;font-family:inherit;transition:background 160ms,color 160ms;"
-                onmouseenter="this.style.background='linear-gradient(90deg,var(--accent),var(--accent2))';this.style.color='#070607';this.style.borderColor='transparent'"
-                onmouseleave="this.style.background='transparent';this.style.color='var(--muted)';this.style.borderColor='rgba(255,255,255,0.1)'">Usar</button>
-            </div>
-          </li>`).join('')}
-        </ul>
-      </div>
     </div>
   </div>`;
 }

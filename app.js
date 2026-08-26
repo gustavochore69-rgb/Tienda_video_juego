@@ -8,7 +8,7 @@ const App = {
     modal: null, // 'login' | 'register' | 'product' | null
     cart: [],
     cartOpen: false,
-    users: JSON.parse(localStorage.getItem('ps_users') || 'null') || [...USERS],
+   users: JSON.parse(localStorage.getItem('ps_users') || '[]'),
     searchQuery: '',
     activeGenre: 'todos',
     activeBrand: 'todos',

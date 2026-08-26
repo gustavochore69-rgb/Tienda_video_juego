@@ -16,7 +16,7 @@ const App = {
       ...GAMES.map((item, index) => [`game-${item.id}`, 25 + (index % 4) * 10]),
       ...CONSOLAS.map((item, index) => [`consola-${item.id}`, 8 + index * 3])
     ]),
-    users: JSON.parse(localStorage.getItem('ps_users') || 'null') || [...USERS],
+    users: JSON.parse(localStorage.getItem('ps_users') || '[]'),
     searchQuery: '',
     activeGenre: 'todos',
     catalogFilters: { sort: 'featured', price: 'all', dealsOnly: false },
@@ -99,7 +99,7 @@ const App = {
     if (user.password !== password) return 'Contraseña incorrecta.';
     if (user.banned) return 'Esta cuenta ha sido suspendida. Contacta a un administrador.';
     localStorage.setItem('ps_session', JSON.stringify(user));
-    showToast('🎮 ' + '¡Bienvenido/a, ' + user.fullName.split(' ')[0] + '!');
+    showToast('🎮 ' + '¡Bienvenido/a, ' + (user.fullName ? user.fullName.split(' ')[0] : user.username) + '!');
     const urls = { admin: 'admin.html', vendor: 'vendor.html', client: 'index.html' };
     setTimeout(() => { window.location.href = urls[user.role] || 'index.html'; }, 700);
     return null;
@@ -246,7 +246,7 @@ const App = {
     const key = `${type}-${id}`;
     const list = this.state.reviews[key] || [];
     const newReview = {
-      user: this.state.currentUser.fullName,
+      user: this.state.currentUser.fullName || this.state.currentUser.username,
       rating,
       comment,
       date: new Date().toISOString().split('T')[0],
@@ -271,7 +271,7 @@ const App = {
     const request = {
       id: Date.now(),
       userId: user.id,
-      applicantName: user.fullName,
+      applicantName: user.fullName || user.username,
       email: user.email,
       phone: data.phone,
       saleType: data.saleType,
@@ -516,7 +516,7 @@ const App = {
       btn.addEventListener('click', e => { e.stopPropagation(); this.toggleFavorite(+btn.dataset.favorite, btn.dataset.type); });
     });
 
-    // Ver detalle de producto (click en la tarjeta, evitando el botón de carrito)
+    // Ver detalle de producto
     document.querySelectorAll('[data-view-product]').forEach(card => {
       card.addEventListener('click', e => {
         if (e.target.closest('[data-add-cart]')) return;
@@ -551,7 +551,7 @@ const App = {
       this.addReview(id, type, rating, comment);
     });
 
-    // Iniciar sesión desde el modal de producto (para dejar reseña)
+    // Iniciar sesión desde el modal de producto
     document.getElementById('btn-login-from-review')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 
     // Modals
@@ -562,31 +562,45 @@ const App = {
     document.getElementById('btn-switch-register')?.addEventListener('click', () => this.setState({ modal: 'register' }));
     document.getElementById('btn-switch-login')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 
-    // Login form
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) bindLoginForm(loginForm, this);
+    // Login form (Conexión corregida directamente con this.login)
+    const loginForm = document.getElementById('login-form') || document.getElementById('form-login');
+    if (loginForm) {
+      loginForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const userInput = (document.getElementById('login-user') || document.getElementById('login-username'))?.value.trim();
+        const passInput = (document.getElementById('login-pass') || document.getElementById('login-password'))?.value;
+        const errEl = document.getElementById('login-error');
+
+        if (errEl) errEl.style.display = 'none';
+
+        if (!userInput || !passInput) {
+          if (errEl) { 
+            errEl.textContent = 'Por favor ingresa usuario/correo y contraseña.'; 
+            errEl.style.display = 'block'; 
+          }
+          return;
+        }
+
+        const err = this.login(userInput, passInput);
+        if (err && errEl) {
+          errEl.textContent = err;
+          errEl.style.display = 'block';
+        }
+      });
+    }
 
     // Register form
     const registerForm = document.getElementById('register-form');
-    if (registerForm) bindRegisterForm(registerForm, this);
-
-    // Demo accounts
-    document.querySelectorAll('[data-demo]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const acc = DEMO_ACCOUNTS.find(a => a.role === btn.dataset.demo);
-        if (acc) {
-          document.getElementById('login-user').value = acc.username;
-          document.getElementById('login-pass').value = acc.password;
-        }
-      });
-    });
+    if (registerForm && typeof bindRegisterForm === 'function') {
+      bindRegisterForm(registerForm, this);
+    }
 
     // Solicitud de cliente para ser vendedor
     document.querySelectorAll('[data-request-vendor]').forEach(btn => {
       btn.addEventListener('click', () => {
         if (this.state.currentUser?.role !== 'client') return;
         if (this.getSellerRequestForUser(this.state.currentUser.id)) {
-          showToast('⏳ Ya tienes una solicitud pendiente.');
+          if (typeof showToast === 'function') showToast('⏳ Ya tienes una solicitud pendiente.');
           return;
         }
         this.setState({ modal: 'seller-request' });
@@ -601,19 +615,19 @@ const App = {
       const imageFile = imageInput?.files?.[0];
 
       if (!terms?.checked) {
-        showToast('⚠️ Debes aceptar los derechos y condiciones.');
+        if (typeof showToast === 'function') showToast('⚠️ Debes aceptar los derechos y condiciones.');
         return;
       }
       if (!imageFile) {
-        showToast('⚠️ Debes subir una foto del producto.');
+        if (typeof showToast === 'function') showToast('⚠️ Debes subir una foto del producto.');
         return;
       }
       if (!imageFile.type.startsWith('image/')) {
-        showToast('⚠️ El archivo debe ser una imagen.');
+        if (typeof showToast === 'function') showToast('⚠️ El archivo debe ser una imagen.');
         return;
       }
       if (imageFile.size > 5 * 1024 * 1024) {
-        showToast('⚠️ La imagen no puede superar los 5 MB.');
+        if (typeof showToast === 'function') showToast('⚠️ La imagen no puede superar los 5 MB.');
         return;
       }
 
@@ -641,7 +655,9 @@ const App = {
     });
 
     // Vendor
-    document.getElementById('btn-add-product')?.addEventListener('click', () => showAddProductModal(this));
+    document.getElementById('btn-add-product')?.addEventListener('click', () => {
+      if (typeof showAddProductModal === 'function') showAddProductModal(this);
+    });
     document.querySelectorAll('[data-vendor-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-vendor-tab]').forEach(b => b.classList.remove('active-tab'));
@@ -681,7 +697,7 @@ const App = {
         const updated = this.state.users.map(u => u.id === uid ? { ...u, role: sel.value } : u);
         localStorage.setItem('ps_users', JSON.stringify(updated));
         this.setState({ users: updated });
-        showToast('✅ Rol actualizado');
+        if (typeof showToast === 'function') showToast('✅ Rol actualizado');
       });
     });
 
@@ -705,21 +721,32 @@ const App = {
 
     // Password strength (register)
     document.getElementById('reg-password')?.addEventListener('input', e => {
-      updatePasswordStrength(e.target.value);
+      if (typeof updatePasswordStrength === 'function') {
+        updatePasswordStrength(e.target.value);
+      }
     });
 
     // Confirm password live
     document.getElementById('reg-confirm')?.addEventListener('input', e => {
       const pass = document.getElementById('reg-password')?.value;
       const hint = document.getElementById('confirm-hint');
+      const input = e.target;
       if (!hint) return;
-      if (!e.target.value) { hint.textContent = ''; return; }
-      if (e.target.value === pass) {
-        hint.style.color = '#a4d96f'; hint.textContent = 'Las contraseñas coinciden ✓';
-        document.getElementById('reg-confirm').style.borderColor = 'rgba(0,229,255,0.45)';
+      
+      if (!input.value) { 
+        hint.textContent = ''; 
+        input.style.borderColor = '';
+        return; 
+      }
+      
+      if (input.value === pass) {
+        hint.style.color = '#a4d96f'; 
+        hint.textContent = 'Las contraseñas coinciden ✓';
+        input.style.borderColor = '#a4d96f';
       } else {
-        hint.style.color = '#ff8080'; hint.textContent = 'Las contraseñas no coinciden';
-        document.getElementById('reg-confirm').style.borderColor = 'rgba(255,0,47,0.5)';
+        hint.style.color = '#ff8080'; 
+        hint.textContent = 'Las contraseñas no coinciden';
+        input.style.borderColor = '#ff8080';
       }
     });
 
@@ -775,8 +802,8 @@ function updatePasswordStrength(val) {
 function bindLoginForm(form, app) {
   form.addEventListener('submit', e => {
     e.preventDefault();
-    const id = document.getElementById('login-user').value.trim();
-    const pw = document.getElementById('login-pass').value;
+    const id = (document.getElementById('login-user') || document.getElementById('login-username')).value.trim();
+    const pw = (document.getElementById('login-pass') || document.getElementById('login-password')).value;
     const errEl = document.getElementById('login-error');
     if (!id || !pw) { errEl.textContent = 'Completa usuario y contraseña.'; errEl.style.display = 'block'; return; }
     const err = app.login(id, pw);

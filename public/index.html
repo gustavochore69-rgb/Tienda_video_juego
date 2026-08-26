@@ -20,56 +20,60 @@
     document.addEventListener('submit', async (e) => {
       const form = e.target;
       
-      // Selectores específicos por tipo/nombre para evitar desfasamientos
-      const inputEmail = form.querySelector('input[type="email"], input[name="email"], input[name="correo"]');
-      const inputPassword = form.querySelector('input[type="password"], input[name="password"], input[name="contra"]');
+      // Selectores flexibles por ID, tipo o atributo name
+      const inputEmail = form.querySelector('#login-user, #reg-email, input[type="email"], input[name="email"], input[name="correo"], input[type="text"]');
+      const inputPassword = form.querySelector('#login-pass, #reg-password, input[type="password"], input[name="password"], input[name="contra"]');
+      const inputNombre = form.querySelector('#reg-fullname, input[name="nombre"], input[name="fullName"], input[name="nombreCompleto"]');
 
       // 1. EVALUAR SI ES FORMULARIO DE REGISTRO
-      const esFormularioRegistro = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('crear') || 
-                                   form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]').length >= 3;
+      const esFormularioRegistro = form.id === 'register-form' || 
+                                   form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('crear') || 
+                                   form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('registrar') ||
+                                   Boolean(inputNombre);
 
-      if (esFormularioRegistro && inputEmail && inputPassword) {
-        // Verificar si existe campo de nombre
-        const inputNombre = form.querySelector('input[type="text"], input[name="nombre"], input[name="fullName"]');
-        
-        if (inputNombre) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
+      if (esFormularioRegistro && inputEmail && inputPassword && inputNombre) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
-          const nombreCompleto = inputNombre.value.trim();
-          const correo = inputEmail.value.trim();
-          const contra = inputPassword.value;
+        const nombreCompleto = inputNombre.value.trim();
+        const correo = inputEmail.value.trim();
+        const contra = inputPassword.value;
 
-          const partesNombre = nombreCompleto.split(' ');
-          const nombre = partesNombre[0] || 'Cliente';
-          const apellido = partesNombre.slice(1).join(' ') || 'Sin Apellido';
-
-          try {
-            const res = await fetch('/api/registro', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nombre, apellido, correo, contra })
-            });
-
-            const result = await res.json();
-
-            if (res.ok) {
-              alert('¡Cliente guardado correctamente en MySQL!');
-              window.location.reload();
-            } else {
-              alert('Error en MySQL: ' + (result.error || 'No se pudo guardar el registro'));
-            }
-          } catch (err) {
-            console.error('Error de conexión:', err);
-            alert('Error al conectar con la base de datos.');
-          }
+        if (!nombreCompleto || !correo || !contra) {
+          alert('Por favor completa todos los campos requeridos.');
           return;
         }
+
+        const partesNombre = nombreCompleto.split(' ');
+        const nombre = partesNombre[0] || 'Cliente';
+        const apellido = partesNombre.slice(1).join(' ') || 'Sin Apellido';
+
+        try {
+          const res = await fetch('/api/registro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, apellido, correo, contra })
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            alert('¡Cliente guardado correctamente en MySQL!');
+            window.location.reload();
+          } else {
+            alert('Error en MySQL: ' + (result.error || 'No se pudo guardar el registro'));
+          }
+        } catch (err) {
+          console.error('Error de conexión:', err);
+          alert('Error al conectar con la base de datos.');
+        }
+        return;
       }
 
       // 2. EVALUAR SI ES FORMULARIO DE LOGIN
-      const esFormularioLogin = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('iniciar') ||
-                                (inputEmail && inputPassword && !form.querySelector('input[name="nombre"]'));
+      const esFormularioLogin = form.id === 'login-form' || 
+                                form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('iniciar') ||
+                                (inputEmail && inputPassword && !inputNombre);
 
       if (esFormularioLogin && inputEmail && inputPassword) {
         e.preventDefault();
@@ -77,6 +81,17 @@
 
         const correo = inputEmail.value.trim();
         const contra = inputPassword.value;
+
+        if (!correo || !contra) {
+          const errEl = document.getElementById('login-error');
+          if (errEl) {
+            errEl.textContent = 'Ingresa tu correo y contraseña.';
+            errEl.style.display = 'block';
+          } else {
+            alert('Ingresa tu correo y contraseña.');
+          }
+          return;
+        }
 
         try {
           const res = await fetch('/api/login', {
@@ -92,20 +107,28 @@
             const usuarioSesion = {
               id: result.cliente.id,
               fullName: `${result.cliente.nombre} ${result.cliente.apellido}`.trim(),
+              username: result.cliente.nombre,
               email: result.cliente.correo,
               role: 'client',
               createdAt: new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
             };
 
-            // Guardar sesión
+            // Guardar sesión en el almacenamiento local
             localStorage.setItem('pixelstore_user', JSON.stringify(usuarioSesion));
             localStorage.setItem('currentUser', JSON.stringify(usuarioSesion));
             localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
+            localStorage.setItem('ps_current_user', JSON.stringify(usuarioSesion));
 
             alert('¡Bienvenido, ' + result.cliente.nombre + '!');
             window.location.reload();
           } else {
-            alert('Error de acceso: ' + (result.error || 'Credenciales inválidas'));
+            const errEl = document.getElementById('login-error');
+            if (errEl) {
+              errEl.textContent = result.error || 'Credenciales inválidas';
+              errEl.style.display = 'block';
+            } else {
+              alert('Error de acceso: ' + (result.error || 'Credenciales inválidas'));
+            }
           }
         } catch (err) {
           console.error('Error de conexión:', err);
@@ -114,5 +137,6 @@
       }
     }, true);
   </script>
+
 </body>
 </html>

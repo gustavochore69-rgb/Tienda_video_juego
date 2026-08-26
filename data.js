@@ -1,9 +1,7 @@
 // DATA.JS - Todos los datos del sitio PixelStore
 
 const USERS = [
-  { id: 1, fullName: 'Admin PixelStore', username: 'admin', email: 'admin@pixel.test', phone: '2200-0001', role: 'admin', password: 'admin123', createdAt: '2025-01-10', banned: false },
-  { id: 2, fullName: 'Carlos Vendedor', username: 'vendedor', email: 'vendedor@pixel.test', phone: '3300-4455', role: 'vendor', password: 'vendedor123', createdAt: '2025-02-14', banned: false },
-  { id: 3, fullName: 'Maria Lopez', username: 'maria', email: 'maria@gmail.com', phone: '8800-1122', role: 'client', password: 'maria123', createdAt: '2025-03-05', banned: false }
+
 ];
 
 const GAMES = [
@@ -64,9 +62,8 @@ const VENDOR_SALES = [
 ];
 
 const DEMO_ACCOUNTS = [
-  { label: 'Administrador', username: 'admin@pixel.test', password: 'admin123', role: 'admin' },
-  { label: 'Vendedor', username: 'vendedor@pixel.test', password: 'vendedor123', role: 'vendor' },
-  { label: 'Cliente', username: 'maria@gmail.com', password: 'maria123', role: 'client' }
+ 
+  
 ];
 
 const GENRES = [

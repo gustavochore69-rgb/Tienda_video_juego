@@ -219,60 +219,53 @@ function renderCart(cart, open, paymentMethod = 'cash') {
 }
 
 // ─── LOGIN MODAL ───────────────────────────────────────────────
+// Modal de Inicio de Sesión (Sin cuentas demo y con submit corregido)
 function renderLoginModal() {
   return `
-  <div id="modal-backdrop" class="modal-backdrop" style="z-index:120;">
-    <div class="modal-box" style="max-width:440px;" role="dialog" aria-modal="true" aria-labelledby="login-title">
-      <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
-      <h2 id="login-title" style="margin:0 0 6px;font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;">Iniciar sesión</h2>
-      <p style="margin:0 0 20px;color:var(--muted);font-size:13.5px;">Ingresa con tu cuenta de PixelStore.</p>
+  <div class="modal-overlay" id="login-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;">
+    <div class="modal-content" style="background:var(--surface,#1a1a1a);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 20px 40px rgba(0,0,0,0.5);">
       
-      <div id="login-error" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:13px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h3 style="margin:0;font-size:1.4rem;font-weight:800;color:#fff;">Iniciar Sesión</h3>
+        <button type="button" id="btn-close-login" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">&times;</button>
+      </div>
 
-      <form id="login-form" autocomplete="off">
-        <div style="margin-bottom:14px;">
-          <label class="field-label">Usuario o correo</label>
-          <input id="login-user" type="text" class="field-input" placeholder="usuario o correo@gmail.com" />
+      <!-- El ID 'form-login' debe coincidir con el listener en tu JS de eventos -->
+      <form id="form-login">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Correo electrónico o Usuario</label>
+          <input 
+            type="text" 
+            id="login-username" 
+            required 
+            placeholder="tu@email.com"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;"
+          />
         </div>
-        <div style="margin-bottom:18px;">
-          <label class="field-label">Contraseña</label>
-          <div style="display:flex;gap:8px;">
-            <input id="login-pass" type="password" class="field-input" placeholder="contraseña" style="flex:1;" />
-            <button type="button" data-toggle-pass="login-pass" style="width:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface2,rgba(255,255,255,0.02));border:1px solid var(--border-subtle,rgba(255,255,255,0.09));border-radius:8px;cursor:pointer;padding:0;transition:border-color 160ms;"
-              onmouseenter="this.style.borderColor='rgba(0,229,255,0.35)'"
-              onmouseleave="this.style.borderColor='rgba(255,255,255,0.09)'">
-              <svg class="eye-icon" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" width="22" height="14" style="display:block;"><path d="M18 60 C38 29 66 14 100 14 C134 14 162 29 182 60 C162 91 134 106 100 106 C66 106 38 91 18 60 Z" fill="#9aa1a6"/><path d="M30 60 C48 37 71 26 100 26 C129 26 152 37 170 60 C152 83 129 94 100 94 C71 94 48 83 30 60 Z" fill="#1a1b1f"/><circle cx="100" cy="60" r="30" fill="#9aa1a6"/><circle cx="100" cy="60" r="16" fill="#1a1b1f"/></svg>
-            </button>
-          </div>
+
+        <div style="margin-bottom:24px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Contraseña</label>
+          <input 
+            type="password" 
+            id="login-password" 
+            required 
+            placeholder="••••••••"
+            style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;"
+          />
         </div>
-        <button type="submit" style="width:100%;padding:11px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;"
-          onmouseenter="this.style.filter='brightness(1.08)';this.style.transform='translateY(-2px)'"
-          onmouseleave="this.style.filter='none';this.style.transform='none'">Iniciar sesión</button>
+
+        <!-- Botón explícito tipo submit -->
+        <button 
+          type="submit" 
+          id="btn-submit-login" 
+          style="width:100%;padding:12px;border-radius:8px;background:var(--accent,#6c5ce7);border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:opacity 0.2s;"
+        >
+          Entrar a PixelStore
+        </button>
       </form>
 
-      <p style="margin:16px 0 0;text-align:center;font-size:13px;color:var(--muted);">
-        ¿No tienes cuenta?&nbsp;
-        <button id="btn-switch-register" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:0;">Regístrate gratis</button>
-      </p>
-
-      <!-- Demo accounts -->
-      <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border-subtle,rgba(255,255,255,0.07));">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:var(--text-sub,#cfd6db);font-weight:700;margin-bottom:10px;">Cuentas demo</div>
-        <ul style="list-style:none;margin:0;padding:0;">
-          ${DEMO_ACCOUNTS.map(acc => `
-          <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--text-strong,#f2f5f7);">${acc.label}</div>
-              <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${acc.username}</div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-              <div style="font-size:11px;color:var(--muted);">${acc.password}</div>
-              <button data-demo="${acc.role}" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border,rgba(255,255,255,0.1));background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 160ms,color 160ms;"
-                onmouseenter="this.style.background='linear-gradient(90deg,var(--accent),var(--accent2))';this.style.color='#070607';this.style.borderColor='transparent'"
-                onmouseleave="this.style.background='transparent';this.style.color='var(--muted)';this.style.borderColor='var(--border,rgba(255,255,255,0.1))'">Usar</button>
-            </div>
-          </li>`).join('')}
-        </ul>
+      <div style="margin-top:20px;text-align:center;font-size:13px;color:var(--muted);">
+        ¿No tienes cuenta? <a href="#" id="link-open-register" style="color:var(--accent);text-decoration:none;font-weight:600;">Regístrate aquí</a>
       </div>
     </div>
   </div>`;
