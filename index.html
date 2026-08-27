@@ -15,5 +15,104 @@
   <script src="data.js"></script>
   <script src="components.js"></script>
   <script src="app.js"></script>
+
+  <script>
+    document.addEventListener('submit', async (e) => {
+      const form = e.target;
+      
+      // Selectores específicos por tipo/nombre para evitar desfasamientos
+      const inputEmail = form.querySelector('input[type="email"], input[name="email"], input[name="correo"]');
+      const inputPassword = form.querySelector('input[type="password"], input[name="password"], input[name="contra"]');
+
+      // 1. EVALUAR SI ES FORMULARIO DE REGISTRO
+      const esFormularioRegistro = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('crear') || 
+                                   form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]').length >= 3;
+
+      if (esFormularioRegistro && inputEmail && inputPassword) {
+        // Verificar si existe campo de nombre
+        const inputNombre = form.querySelector('input[type="text"], input[name="nombre"], input[name="fullName"]');
+        
+        if (inputNombre) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+
+          const nombreCompleto = inputNombre.value.trim();
+          const correo = inputEmail.value.trim();
+          const contra = inputPassword.value;
+
+          const partesNombre = nombreCompleto.split(' ');
+          const nombre = partesNombre[0] || 'Cliente';
+          const apellido = partesNombre.slice(1).join(' ') || 'Sin Apellido';
+
+          try {
+            const res = await fetch('/api/registro', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nombre, apellido, correo, contra })
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+              alert('¡Cliente guardado correctamente en MySQL!');
+              window.location.reload();
+            } else {
+              alert('Error en MySQL: ' + (result.error || 'No se pudo guardar el registro'));
+            }
+          } catch (err) {
+            console.error('Error de conexión:', err);
+            alert('Error al conectar con la base de datos.');
+          }
+          return;
+        }
+      }
+
+      // 2. EVALUAR SI ES FORMULARIO DE LOGIN
+      const esFormularioLogin = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('iniciar') ||
+                                (inputEmail && inputPassword && !form.querySelector('input[name="nombre"]'));
+
+      if (esFormularioLogin && inputEmail && inputPassword) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const correo = inputEmail.value.trim();
+        const contra = inputPassword.value;
+
+        try {
+          const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo, contra })
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            // Estructura requerida por la plantilla
+            const usuarioSesion = {
+              id: result.cliente.id,
+              fullName: `${result.cliente.nombre} ${result.cliente.apellido}`.trim(),
+              email: result.cliente.correo,
+              role: 'client',
+              createdAt: new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
+            };
+
+            // Guardar sesión
+            localStorage.setItem('pixelstore_user', JSON.stringify(usuarioSesion));
+            localStorage.setItem('currentUser', JSON.stringify(usuarioSesion));
+            localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
+
+            alert('¡Bienvenido, ' + result.cliente.nombre + '!');
+            window.location.reload();
+          } else {
+            alert('Error de acceso: ' + (result.error || 'Credenciales inválidas'));
+          }
+        } catch (err) {
+          console.error('Error de conexión:', err);
+          alert('Error al conectar con la base de datos.');
+        }
+      }
+    }, true);
+  </script>
 </body>
 </html>
