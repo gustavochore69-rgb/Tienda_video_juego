@@ -48,7 +48,7 @@ function renderHeader({ currentUser, cart, page }) {
         <input id="search-input" type="search" placeholder="Buscar juegos, consolas..." style="flex:1;min-width:0;padding:9px 8px;background:transparent;border:none;color:var(--text);font-size:13.5px;font-family:inherit;outline:none;"
           onfocus="this.closest('.search-form').classList.add('search-focused')"
           onblur="this.closest('.search-form').classList.remove('search-focused')" />
-        <button type="submit" style="margin:3px;padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#070607;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;font-family:inherit;transition:filter 160ms;"
+        <button type="submit" style="margin:3px;padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#ffffff;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;font-family:inherit;transition:filter 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
           onmouseenter="this.style.filter='brightness(1.1)'"
           onmouseleave="this.style.filter='none'">Buscar</button>
       </form>
@@ -82,7 +82,7 @@ function renderHeader({ currentUser, cart, page }) {
             onmouseleave="this.style.color='var(--muted)';this.style.borderColor='var(--border,rgba(255,255,255,0.08))'">Salir</button>
         ` : `
           <button id="btn-login" class="btn-glow" style="padding:7px 14px;background:var(--surface);border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;">Iniciar sesión</button>
-          <button id="btn-register" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Registrarse</button>
+          <button id="btn-register" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#ffffff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-shadow:0 1px 2px rgba(0,0,0,0.3);">Registrarse</button>
         `}
         <button id="btn-cart" class="cart-trigger" aria-label="Abrir carrito${cartCount ? `, ${cartCount} productos` : ''}" style="padding:7px 14px;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);font-size:13px;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0;position:relative;transition:border-color 200ms;display:inline-flex;align-items:center;gap:6px;"
           onmouseenter="this.style.borderColor='rgba(0,229,255,0.3)'"
@@ -208,7 +208,7 @@ function renderCart(cart, open, paymentMethod = 'cash') {
         <span style="font-size:14px;color:var(--muted);">Total</span>
         <span style="font-size:18px;font-weight:800;color:#a4d96f;">$${total.toFixed(2)}</span>
       </div>
-      <button id="btn-checkout" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#070607;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;"
+      <button id="btn-checkout" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#ffffff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
         onmouseenter="this.style.filter='brightness(1.08)';this.style.transform='translateY(-2px)'"
         onmouseleave="this.style.filter='none';this.style.transform='none'">
         ${cart.length === 0 ? 'Carrito vacío' : 'Finalizar compra →'}
@@ -245,7 +245,7 @@ function renderLoginModal() {
             </button>
           </div>
         </div>
-        <button type="submit" style="width:100%;padding:11px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;"
+        <button type="submit" style="width:100%;padding:11px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#ffffff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
           onmouseenter="this.style.filter='brightness(1.08)';this.style.transform='translateY(-2px)'"
           onmouseleave="this.style.filter='none';this.style.transform='none'">Iniciar sesión</button>
       </form>
@@ -268,7 +268,7 @@ function renderLoginModal() {
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
               <div style="font-size:11px;color:var(--muted);">${acc.password}</div>
               <button data-demo="${acc.role}" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border,rgba(255,255,255,0.1));background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 160ms,color 160ms;"
-                onmouseenter="this.style.background='linear-gradient(90deg,var(--accent),var(--accent2))';this.style.color='#070607';this.style.borderColor='transparent'"
+                onmouseenter="this.style.background='linear-gradient(90deg,var(--accent),var(--accent2))';this.style.color='#ffffff';this.style.borderColor='transparent'"
                 onmouseleave="this.style.background='transparent';this.style.color='var(--muted)';this.style.borderColor='var(--border,rgba(255,255,255,0.1))'">Usar</button>
             </div>
           </li>`).join('')}
@@ -333,7 +333,7 @@ function renderRegisterModal() {
           </div>
           <p id="confirm-hint" style="margin:5px 0 0;font-size:11.5px;"></p>
         </div>
-        <button type="submit" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--accent2),var(--accent));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;"
+        <button type="submit" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--accent2),var(--accent));border:none;border-radius:9px;color:#ffffff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
           onmouseenter="this.style.filter='brightness(1.08)';this.style.transform='translateY(-2px)'"
           onmouseleave="this.style.filter='none';this.style.transform='none'">Crear mi cuenta</button>
       </form>
@@ -387,7 +387,7 @@ function renderSellerRequestModal() {
           <span>Acepto los derechos, condiciones y responsabilidades de los vendedores de PixelStore.</span>
         </label>
 
-        <button type="submit" style="width:100%;padding:11px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">
+        <button type="submit" style="width:100%;padding:11px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#ffffff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;text-shadow:0 1px 2px rgba(0,0,0,0.3);">
           Enviar solicitud
         </button>
       </form>
@@ -423,7 +423,7 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
             <span style="font-size:22px;font-weight:800;color:#a4d96f;">$${product.price.toFixed(2)}</span>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button data-add-cart="${product.id}" data-type="${type}" style="padding:10px 20px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;"
+          <button data-add-cart="${product.id}" data-type="${type}" style="padding:10px 20px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#ffffff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
             onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'"
             onmouseleave="this.style.filter='none';this.style.transform='none'">+ Añadir al carrito</button>
           <button type="button" data-favorite="${product.id}" data-type="${type}" class="favorite-button ${favorite ? 'is-active' : ''}" aria-label="${favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">${favorite ? '♥ Guardado' : '♡ Favorito'}</button>
@@ -485,7 +485,7 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
               <label class="field-label" for="review-comment">Tu reseña</label>
               <textarea id="review-comment" class="field-input" rows="3" placeholder="Cuéntanos qué te pareció..." style="resize:vertical;font-family:inherit;"></textarea>
             </div>
-            <button type="submit" style="padding:9px 18px;background:linear-gradient(90deg,var(--accent2),var(--accent));border:none;border-radius:8px;color:#070607;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">Publicar reseña</button>
+            <button type="submit" style="padding:9px 18px;background:linear-gradient(90deg,var(--accent2),var(--accent));border:none;border-radius:8px;color:#ffffff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;text-shadow:0 1px 2px rgba(0,0,0,0.3);">Publicar reseña</button>
           </form>
         ` : `
           <p style="font-size:13px;color:var(--muted);">
@@ -522,9 +522,9 @@ function renderStore({ activeGenre, searchQuery, reviews, catalogFilters = {} })
         <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-0.6px;margin:0 0 12px;color:#fff;">Bienvenido a PixelStore</h2>
         <p style="color:var(--muted);margin:0 0 24px;max-width:46ch;font-size:15px;">Encuentra tus juegos favoritos, ofertas exclusivas y las últimas novedades — todo en un solo lugar.</p>
         <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-          <button id="btn-explorar" style="padding:12px 22px;background:transparent;border:2px solid var(--accent);color:var(--accent);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;"
-            onmouseenter="this.style.background='rgba(255,0,47,0.08)';this.style.boxShadow='0 24px 60px rgba(255,0,47,0.22)';this.style.transform='translateY(-3px)'"
-            onmouseleave="this.style.background='transparent';this.style.boxShadow='none';this.style.transform='none'">Explorar juegos</button>
+          <button id="btn-explorar" style="padding:12px 22px;background:rgba(255,0,47,0.16);border:2px solid var(--accent);color:#ffffff;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;box-shadow:0 0 16px rgba(255,0,47,0.22);"
+            onmouseenter="this.style.background='rgba(255,0,47,0.28)';this.style.boxShadow='0 24px 60px rgba(255,0,47,0.35)';this.style.transform='translateY(-3px)'"
+            onmouseleave="this.style.background='rgba(255,0,47,0.16)';this.style.boxShadow='0 0 16px rgba(255,0,47,0.22)';this.style.transform='none'">Explorar juegos</button>
           <button id="btn-consolas" style="padding:12px 22px;background:transparent;border:2px solid rgba(0,229,255,0.5);color:var(--accent2);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;display:inline-flex;align-items:center;gap:8px;"
             onmouseenter="this.style.background='rgba(0,229,255,0.06)';this.style.transform='translateY(-3px)'"
             onmouseleave="this.style.background='transparent';this.style.transform='none'"><svg width="22" height="15" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(0,229,255,0.55));"><defs><linearGradient id="gpad-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff002f"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="url(#gpad-grad)"/><path d="M72 68 C77 49 94 39 116 39 H153 C162 39 168 44 170 53 L175 70 H88 C82 70 76 70 72 68 Z" fill="url(#gpad-grad)"/><path d="M448 68 C443 49 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H432 C438 70 444 70 448 68 Z" fill="url(#gpad-grad)"/><rect x="174" y="62" width="172" height="83" rx="2" fill="#0b0b0d"/><rect x="181" y="68" width="158" height="70" rx="1" fill="url(#gpad-grad)"/><g fill="#0b0b0d"><rect x="78" y="78" width="18" height="58" rx="2"/><rect x="58" y="98" width="58" height="18" rx="2"/></g><rect x="78" y="98" width="18" height="18" fill="#0b0b0d"/><circle cx="407" cy="72" r="13" fill="#0b0b0d"/><circle cx="382" cy="103" r="13" fill="#0b0b0d"/><circle cx="438" cy="103" r="13" fill="#0b0b0d"/><circle cx="410" cy="132" r="13" fill="#0b0b0d"/><circle cx="181" cy="204" r="25" fill="#0b0b0d"/><circle cx="181" cy="204" r="18" fill="url(#gpad-grad)"/><circle cx="339" cy="204" r="25" fill="#0b0b0d"/><circle cx="339" cy="204" r="18" fill="url(#gpad-grad)"/><rect x="204" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="291" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="249" y="157" width="22" height="8" rx="4" fill="#0b0b0d"/></svg> Consolas</button>
@@ -579,7 +579,7 @@ function renderGameCard(g, reviews) {
           ${g.originalPrice ? `<span style="font-size:11.5px;color:var(--muted);text-decoration:line-through;margin-right:6px;">$${g.originalPrice.toFixed(2)}</span>` : ''}
           <span style="font-size:16px;font-weight:800;color:#a4d96f;">$${g.price.toFixed(2)}</span>
         </div>
-        <button data-add-cart="${g.id}" data-type="game" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:filter 160ms,transform 160ms;"
+        <button data-add-cart="${g.id}" data-type="game" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#ffffff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:filter 160ms,transform 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
           onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'"
           onmouseleave="this.style.filter='none';this.style.transform='none'">+ Carrito</button>
       </div>
@@ -605,7 +605,7 @@ function renderConsolas({ activeBrand, reviews }) {
       ${brands.map(b => `
         <button data-brand="${b}" style="padding:8px 18px;border-radius:999px;font-size:13.5px;cursor:pointer;font-family:inherit;transition:all 180ms ease;
           ${activeBrand === b
-            ? 'border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#070607;font-weight:700;'
+            ? 'border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#ffffff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'
             : 'border:1px solid var(--border-subtle,rgba(255,255,255,0.07));background:var(--surface);color:var(--muted);font-weight:400;'}"
           onmouseenter="${activeBrand !== b ? "this.style.borderColor='rgba(255,255,255,0.18)';this.style.color='#fff'" : ''}"
           onmouseleave="${activeBrand !== b ? "this.style.borderColor='rgba(255,255,255,0.07)';this.style.color='var(--muted)'" : ''}"
@@ -631,7 +631,7 @@ function renderConsolas({ activeBrand, reviews }) {
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
               <span style="font-size:17px;font-weight:800;color:#a4d96f;">$${c.price.toFixed(2)}</span>
-              <button data-add-cart="${c.id}" data-type="consola" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;"
+              <button data-add-cart="${c.id}" data-type="consola" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#ffffff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
                 onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'"
                 onmouseleave="this.style.filter='none';this.style.transform='none'">+ Carrito</button>
             </div>
@@ -930,7 +930,7 @@ function renderProfile({ currentUser, favorites, orders, notifications, sellerRe
           ${
             sellerRequests.some(r => r.userId === currentUser.id && r.status === 'pendiente')
               ? `<span style="padding:8px 12px;border-radius:8px;background:rgba(245,166,35,0.1);color:#f5a623;font-size:12px;font-weight:700;">Solicitud pendiente</span>`
-              : `<button data-request-vendor class="btn-glow" type="button" style="padding:9px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Quiero ser vendedor</button>`
+              : `<button data-request-vendor class="btn-glow" type="button" style="padding:9px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#ffffff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-shadow:0 1px 2px rgba(0,0,0,0.3);">Quiero ser vendedor</button>`
           }
         </div>
       </section>
