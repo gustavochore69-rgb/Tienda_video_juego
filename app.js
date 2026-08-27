@@ -8,7 +8,16 @@ const App = {
     modal: null, // 'login' | 'register' | 'product' | null
     cart: [],
     cartOpen: false,
-    users: JSON.parse(localStorage.getItem('ps_users') || 'null') || [...USERS],
+    users: (() => {
+      const saved = JSON.parse(localStorage.getItem('ps_users') || '[]');
+      const base = (typeof USERS !== 'undefined') ? [...USERS] : [];
+      saved.forEach(s => {
+        if (!base.some(b => (b.email && s.email && b.email.toLowerCase() === s.email.toLowerCase()) || (b.username && s.username && b.username.toLowerCase() === s.username.toLowerCase()))) {
+          base.push(s);
+        }
+      });
+      return base;
+    })(),
     searchQuery: '',
     activeGenre: 'todos',
     activeBrand: 'todos',
