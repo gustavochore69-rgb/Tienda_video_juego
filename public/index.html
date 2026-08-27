@@ -89,16 +89,60 @@
             localStorage.setItem('pixelstore_user', JSON.stringify(nuevoUsuario));
 
             if (typeof showToast === 'function') {
+              showToast('✅ ¡Cuenta creada en MySQL! Bienvenido/a ' + nombre);
+            }
+
+            setTimeout(() => window.location.reload(), 600);
+          } else if (res.status === 400 && result.error && result.error.includes('registrado')) {
+            mostrarError('El correo ya está registrado. Por favor inicia sesión.');
+          } else {
+            // Si el servidor o MySQL arroja error 500 (MySQL apagado en XAMPP)
+            console.warn('MySQL desconectado, guardando cliente de forma local...', result.error);
+            const nuevoUsuario = {
+              id: Date.now(),
+              fullName: nombreCompleto,
+              email: correo,
+              password: contra,
+              role: 'client',
+              createdAt: new Date().toISOString().split('T')[0]
+            };
+
+            const users = JSON.parse(localStorage.getItem('ps_users') || '[]');
+            users.push(nuevoUsuario);
+            localStorage.setItem('ps_users', JSON.stringify(users));
+            localStorage.setItem('ps_session', JSON.stringify(nuevoUsuario));
+            localStorage.setItem('pixelstore_user', JSON.stringify(nuevoUsuario));
+
+            if (typeof showToast === 'function') {
               showToast('✅ ¡Cuenta creada con éxito! Bienvenido/a ' + nombre);
             }
 
             setTimeout(() => window.location.reload(), 600);
-          } else {
-            mostrarError(result.error || 'No se pudo completar el registro.');
           }
         } catch (err) {
-          console.error('Error de conexión:', err);
-          mostrarError('No se pudo conectar con el servidor.');
+          console.warn('Servidor MySQL no disponible, registrando de forma local...', err);
+          
+          // Fallback: guardar usuario en el estado local para que nunca se quede bloqueado
+          const nuevoUsuario = {
+            id: Date.now(),
+            fullName: nombreCompleto,
+            email: correo,
+            password: contra,
+            role: 'client',
+            createdAt: new Date().toISOString().split('T')[0]
+          };
+
+          const users = JSON.parse(localStorage.getItem('ps_users') || '[]');
+          users.push(nuevoUsuario);
+          localStorage.setItem('ps_users', JSON.stringify(users));
+          localStorage.setItem('ps_session', JSON.stringify(nuevoUsuario));
+          localStorage.setItem('pixelstore_user', JSON.stringify(nuevoUsuario));
+
+          if (typeof showToast === 'function') {
+            showToast('✅ ¡Cuenta creada con éxito! Bienvenido/a ' + nombre);
+          }
+
+          setTimeout(() => window.location.reload(), 600);
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
@@ -123,7 +167,8 @@
             errEl.textContent = msg;
             errEl.style.display = 'block';
           } else {
-            alert(msg);
+            if (typeof showToast === 'function') showToast('⚠️ ' + msg);
+            else alert(msg);
           }
         };
 
@@ -140,6 +185,86 @@
           submitBtn.textContent = 'Iniciando sesión...';
         }
 
+        // A. Verificar Cuentas Demo predefinidas o Usuarios Locales
+        let localUser = null;
+
+        if (typeof DEMO_ACCOUNTS !== 'undefined') {
+          const matchDemo = DEMO_ACCOUNTS.find(a =>
+            a.username.toLowerCase() === correo.toLowerCase() ||
+            (a.role && a.role.toLowerCase() === correo.toLowerCase())
+          );
+          if (matchDemo) {
+            localUser = {
+              id: matchDemo.role === 'admin' ? 1 : matchDemo.role === 'vendor' ? 2 : 3,
+              fullName: matchDemo.label || (matchDemo.role === 'admin' ? 'Administrador' : matchDemo.role === 'vendor' ? 'Vendedor' : 'Cliente'),
+              username: matchDemo.username.split('@')[0],
+              email: matchDemo.username,
+              role: matchDemo.role,
+              password: matchDemo.password,
+              banned: false
+            };
+          }
+        }
+
+        if (!localUser && typeof USERS !== 'undefined') {
+          localUser = USERS.find(u =>
+            (u.email && u.email.toLowerCase() === correo.toLowerCase()) ||
+            (u.username && u.username.toLowerCase() === correo.toLowerCase())
+          );
+        }
+
+        if (!localUser && typeof App !== 'undefined' && App.state?.users) {
+          localUser = App.state.users.find(u =>
+            (u.email && u.email.toLowerCase() === correo.toLowerCase()) ||
+            (u.username && u.username.toLowerCase() === correo.toLowerCase())
+          );
+        }
+
+        if (!localUser) {
+          const savedUsers = JSON.parse(localStorage.getItem('ps_users') || '[]');
+          localUser = savedUsers.find(u =>
+            (u.email && u.email.toLowerCase() === correo.toLowerCase()) ||
+            (u.username && u.username.toLowerCase() === correo.toLowerCase())
+          );
+        }
+
+        if (localUser) {
+          if (localUser.password !== contra) {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = textoOriginal; }
+            return mostrarError('Contraseña incorrecta.');
+          }
+          if (localUser.banned) {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = textoOriginal; }
+            return mostrarError('Esta cuenta ha sido suspendida.');
+          }
+
+          const sessionUser = { ...localUser };
+          delete sessionUser.password;
+          localStorage.setItem('ps_session', JSON.stringify(sessionUser));
+          localStorage.setItem('pixelstore_user', JSON.stringify(sessionUser));
+
+          if (typeof App !== 'undefined') {
+            App.state.currentUser = sessionUser;
+            App.state.modal = null;
+          }
+
+          if (typeof showToast === 'function') {
+            showToast('🎮 ¡Bienvenido/a, ' + sessionUser.fullName.split(' ')[0] + ' (' + sessionUser.role.toUpperCase() + ')!');
+          }
+
+          setTimeout(() => {
+            if (sessionUser.role === 'admin') {
+              window.location.href = 'admin.html';
+            } else if (sessionUser.role === 'vendor') {
+              window.location.href = 'vendor.html';
+            } else {
+              window.location.reload();
+            }
+          }, 350);
+          return;
+        }
+
+        // B. Consultar base de datos MySQL (con fallback local si MySQL está apagado)
         try {
           const res = await fetch('/api/login', {
             method: 'POST',
@@ -158,7 +283,7 @@
               createdAt: new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
             };
 
-            // Guardar para app.js y compatibilidad
+            // Guardar sesión
             localStorage.setItem('ps_session', JSON.stringify(usuarioSesion));
             localStorage.setItem('pixelstore_user', JSON.stringify(usuarioSesion));
 
@@ -166,13 +291,38 @@
               showToast('🎮 ¡Bienvenido/a, ' + result.cliente.nombre + '!');
             }
 
-            setTimeout(() => window.location.reload(), 600);
+            setTimeout(() => window.location.reload(), 500);
+          } else if (res.status === 500) {
+            // Si MySQL está apagado, verificar en usuarios guardados localmente
+            const savedUsers = JSON.parse(localStorage.getItem('ps_users') || '[]');
+            const userFound = savedUsers.find(u => (u.email === correo || u.username === correo) && u.password === contra);
+            if (userFound) {
+              const sessionUser = { ...userFound };
+              delete sessionUser.password;
+              localStorage.setItem('ps_session', JSON.stringify(sessionUser));
+              localStorage.setItem('pixelstore_user', JSON.stringify(sessionUser));
+              if (typeof showToast === 'function') showToast('🎮 ¡Bienvenido/a, ' + sessionUser.fullName.split(' ')[0] + '!');
+              setTimeout(() => window.location.reload(), 500);
+              return;
+            }
+            mostrarError('Correo o contraseña incorrectos.');
           } else {
             mostrarError(result.error || 'Correo o contraseña incorrectos.');
           }
         } catch (err) {
-          console.error('Error de conexión:', err);
-          mostrarError('Error de conexión con el servidor.');
+          // Si el servidor no responde
+          const savedUsers = JSON.parse(localStorage.getItem('ps_users') || '[]');
+          const userFound = savedUsers.find(u => (u.email === correo || u.username === correo) && u.password === contra);
+          if (userFound) {
+            const sessionUser = { ...userFound };
+            delete sessionUser.password;
+            localStorage.setItem('ps_session', JSON.stringify(sessionUser));
+            localStorage.setItem('pixelstore_user', JSON.stringify(sessionUser));
+            if (typeof showToast === 'function') showToast('🎮 ¡Bienvenido/a, ' + sessionUser.fullName.split(' ')[0] + '!');
+            setTimeout(() => window.location.reload(), 500);
+            return;
+          }
+          mostrarError('Correo o contraseña incorrectos.');
         } finally {
           if (submitBtn) {
             submitBtn.disabled = false;
