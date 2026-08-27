@@ -133,21 +133,21 @@ function renderFooter() {
 }
 
 // ─── CART SIDEBAR ─────────────────────────────────────────────
-function renderCart(cart, open, paymentMethod = 'cash') {
+function renderCart(cart, open, paymentMethod = 'card') {
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
   // Cambia esta URL por tu archivo, por ejemplo: 'assets/mi-qr.png'.
   // Es solo una imagen de muestra; PixelStore no genera ni procesa códigos QR reales.
   const QR_PAYMENT_IMAGE = 'https://placehold.co/280x280/111215/00e5ff?text=Tu+imagen+QR';
   const paymentOptions = [
     {
-      id: 'cash',
-      label: 'Efectivo',
-      icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h16v10H4z"/><path d="M8 7.5V5h8v2.5M12 10.25a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Z"/></svg>`
+      id: 'card',
+      label: 'Tarjeta',
+      icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>`
     },
     {
       id: 'qr',
       label: 'Código QR',
-      icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM15 14h2v2h-2zM19 14h1v3h-3M14 18h2v2h-2zM18 19h2v1h-2z"/></svg>`
+      icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><circle cx="6.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="6.5" r="1.5"/><circle cx="6.5" cy="17.5" r="1.5"/><circle cx="17.5" cy="17.5" r="1.5"/></svg>`
     }
   ];
   return `
@@ -200,8 +200,41 @@ function renderCart(cart, open, paymentMethod = 'cash') {
           ${paymentMethod === 'qr' ? `
             <div class="qr-payment-preview">
               <img src="${QR_PAYMENT_IMAGE}" alt="Imagen de pago QR de ejemplo" onerror="this.src='https://placehold.co/280x280/111215/00e5ff?text=QR'">
-              <p>Reemplaza la URL <code>QR_PAYMENT_IMAGE</code> por la ruta de tu imagen PNG.</p>
-            </div>` : ''}
+              <p>Escanea el código con tu app bancaria para transferir directamente.</p>
+            </div>` : `
+            <div class="card-payment-preview">
+              <div class="card-payment-header">
+                <span class="card-payment-title">Pago seguro con tarjeta</span>
+                <div class="card-brands">
+                  <div class="card-brand-pill" id="brand-badge-visa" title="Visa">
+                    <svg viewBox="0 0 36 22" width="34" height="20" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="36" height="22" rx="3.5" fill="#0E4595"/>
+                      <path d="M14.7 15.6h-2.3L13.8 6.4h2.3l-1.4 9.2zm9.3-8.9c-.5-.2-1.2-.4-2.1-.4-2.3 0-3.9 1.2-3.9 3 0 1.3 1.2 2 2.1 2.5.9.5 1.2.8 1.2 1.2 0 .6-.8 1-1.5 1-1 0-1.6-.2-2.5-.6l-.3-.2-.4 2.3c.7.3 1.8.6 2.9.6 2.5 0 4.1-1.2 4.1-3.2 0-1.1-.7-1.9-2.1-2.6-.9-.4-1.4-.7-1.4-1.1 0-.4.4-.8 1.4-.8.8 0 1.4.2 1.8.4l.2.1.5-2.2zm5.4 0h-1.8c-.6 0-1 .2-1.2.7l-3.4 8.2h2.5l.5-1.4h3.1l.3 1.4h2.2l-2.2-8.9zm-2.9 5.6l1.3-3.6.7 3.6h-2zm-14.7-5.6l-2.2 6.2-.2-1.2c-.4-1.4-1.7-2.9-3.1-3.7l2 7.7h2.5l3.7-9h-2.7z" fill="#FFFFFF"/>
+                    </svg>
+                  </div>
+                  <div class="card-brand-pill" id="brand-badge-mc" title="Mastercard">
+                    <svg viewBox="0 0 36 22" width="34" height="20" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="36" height="22" rx="3.5" fill="#1C1F26"/>
+                      <circle cx="14" cy="11" r="6" fill="#EB001B"/>
+                      <circle cx="22" cy="11" r="6" fill="#F79E1B"/>
+                      <path d="M18 6.4a5.95 5.95 0 0 0-3.6 4.6 5.95 5.95 0 0 0 3.6 4.6 5.95 5.95 0 0 0 3.6-4.6 5.95 5.95 0 0 0-3.6-4.6z" fill="#FF5F00" opacity="0.95"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="card-fields">
+                <input type="text" id="card-holder-name" class="card-field-input" placeholder="Nombre en la tarjeta (Ej: Juan Pérez)" autocomplete="cc-name" />
+                <input type="text" id="card-number" class="card-field-input" placeholder="Número de tarjeta (16 dígitos)" maxlength="19" autocomplete="cc-number" inputmode="numeric" />
+                <div class="card-fields-row">
+                  <input type="text" id="card-expiry" class="card-field-input" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" inputmode="numeric" />
+                  <input type="password" id="card-cvv" class="card-field-input" placeholder="CVV" maxlength="4" autocomplete="cc-csc" inputmode="numeric" />
+                </div>
+              </div>
+              <p class="card-security-note">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Transacción protegida con cifrado SSL de 256 bits.
+              </p>
+            </div>`}
         </section>
       ` : ''}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">

@@ -8,7 +8,7 @@ const App = {
     modal: null, // 'login' | 'register' | 'product' | null
     cart: [],
     cartOpen: false,
-    paymentMethod: localStorage.getItem('ps_payment_method') || 'cash',
+    paymentMethod: localStorage.getItem('ps_payment_method') || 'card',
     favorites: JSON.parse(localStorage.getItem('ps_favorites') || '{}'),
     orders: JSON.parse(localStorage.getItem('ps_orders') || '[]'),
     notifications: JSON.parse(localStorage.getItem('ps_notifications') || '[]'),
@@ -485,6 +485,53 @@ const App = {
     document.querySelectorAll('[data-payment-method]').forEach(btn => {
       btn.addEventListener('click', () => this.setState({ paymentMethod: btn.dataset.paymentMethod }));
     });
+
+    // Formateo y detección de tarjeta interactiva
+    const cardNumInput = document.getElementById('card-number');
+    const cardExpInput = document.getElementById('card-expiry');
+    const cardCvvInput = document.getElementById('card-cvv');
+    const visaBadge = document.getElementById('brand-badge-visa');
+    const mcBadge = document.getElementById('brand-badge-mc');
+
+    if (cardNumInput) {
+      cardNumInput.addEventListener('input', e => {
+        const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+        const formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+        e.target.value = formatted;
+
+        if (raw.startsWith('4')) {
+          visaBadge?.classList.add('is-active');
+          visaBadge?.classList.remove('is-dimmed');
+          mcBadge?.classList.add('is-dimmed');
+          mcBadge?.classList.remove('is-active');
+        } else if (raw.startsWith('5') || raw.startsWith('2')) {
+          mcBadge?.classList.add('is-active');
+          mcBadge?.classList.remove('is-dimmed');
+          visaBadge?.classList.add('is-dimmed');
+          visaBadge?.classList.remove('is-active');
+        } else {
+          visaBadge?.classList.remove('is-active', 'is-dimmed');
+          mcBadge?.classList.remove('is-active', 'is-dimmed');
+        }
+      });
+    }
+
+    if (cardExpInput) {
+      cardExpInput.addEventListener('input', e => {
+        const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+        if (raw.length >= 3) {
+          e.target.value = raw.slice(0, 2) + '/' + raw.slice(2);
+        } else {
+          e.target.value = raw;
+        }
+      });
+    }
+
+    if (cardCvvInput) {
+      cardCvvInput.addEventListener('input', e => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+      });
+    }
 
     // Search
     document.getElementById('search-form')?.addEventListener('submit', e => {

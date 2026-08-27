@@ -411,6 +411,111 @@ body.light .cart-trigger {
 .qr-payment-preview img { width: 76px; height: 76px; object-fit: cover; border-radius: 6px; background: #111215; }
 .qr-payment-preview p { margin: 0; color: var(--muted); font-size: 10.5px; line-height: 1.45; }
 .qr-payment-preview code { color: var(--accent2); font-size: .95em; }
+
+.card-payment-preview {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 10px;
+  background: rgba(var(--accent-rgb), 0.04);
+}
+.card-payment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.card-payment-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.card-brands {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-brand-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: transform 180ms ease, opacity 180ms ease, box-shadow 180ms ease, border-color 180ms ease, filter 180ms ease;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #14151a;
+  cursor: default;
+}
+.card-brand-pill svg {
+  display: block;
+  width: 34px;
+  height: 20px;
+}
+.card-brand-pill.is-active {
+  transform: scale(1.08);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.55);
+  border-color: var(--accent2, #00e5ff);
+  filter: brightness(1.15);
+}
+.card-brand-pill.is-dimmed {
+  opacity: 0.3;
+  filter: grayscale(0.85);
+  transform: scale(0.94);
+}
+body.light .card-brand-pill {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  border-color: rgba(0,0,0,0.12);
+}
+.card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card-field-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: var(--surface, #14151a);
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.12));
+  color: var(--text-strong);
+  font-family: inherit;
+  font-size: 11.5px;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.card-field-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.18);
+}
+.card-fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.card-security-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.card-security-note svg {
+  flex-shrink: 0;
+  color: var(--accent2);
+}
+body.light .card-payment-preview {
+  background: rgba(245, 73, 39, 0.04);
+  border-color: rgba(245, 73, 39, 0.2);
+}
+body.light .card-field-input {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #111;
+}
 .favorite-button { padding: 10px 14px; border: 1px solid var(--border-subtle); border-radius: 9px; background: var(--surface2); color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .favorite-button:hover, .favorite-button.is-active { color: var(--accent); border-color: rgba(var(--accent-rgb), .42); background: rgba(var(--accent-rgb), .08); }
 .catalog-tools {
