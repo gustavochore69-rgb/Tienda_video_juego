@@ -19,64 +19,126 @@
   <script>
     document.addEventListener('submit', async (e) => {
       const form = e.target;
-      
-      // Selectores específicos por tipo/nombre para evitar desfasamientos
-      const inputEmail = form.querySelector('input[type="email"], input[name="email"], input[name="correo"]');
-      const inputPassword = form.querySelector('input[type="password"], input[name="password"], input[name="contra"]');
+      if (!form) return;
 
-      // 1. EVALUAR SI ES FORMULARIO DE REGISTRO
-      const esFormularioRegistro = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('crear') || 
-                                   form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]').length >= 3;
-
-      if (esFormularioRegistro && inputEmail && inputPassword) {
-        // Verificar si existe campo de nombre
-        const inputNombre = form.querySelector('input[type="text"], input[name="nombre"], input[name="fullName"]');
-        
-        if (inputNombre) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-
-          const nombreCompleto = inputNombre.value.trim();
-          const correo = inputEmail.value.trim();
-          const contra = inputPassword.value;
-
-          const partesNombre = nombreCompleto.split(' ');
-          const nombre = partesNombre[0] || 'Cliente';
-          const apellido = partesNombre.slice(1).join(' ') || 'Sin Apellido';
-
-          try {
-            const res = await fetch('/api/registro', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nombre, apellido, correo, contra })
-            });
-
-            const result = await res.json();
-
-            if (res.ok) {
-              alert('¡Cliente guardado correctamente en MySQL!');
-              window.location.reload();
-            } else {
-              alert('Error en MySQL: ' + (result.error || 'No se pudo guardar el registro'));
-            }
-          } catch (err) {
-            console.error('Error de conexión:', err);
-            alert('Error al conectar con la base de datos.');
-          }
-          return;
-        }
-      }
-
-      // 2. EVALUAR SI ES FORMULARIO DE LOGIN
-      const esFormularioLogin = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('iniciar') ||
-                                (inputEmail && inputPassword && !form.querySelector('input[name="nombre"]'));
-
-      if (esFormularioLogin && inputEmail && inputPassword) {
+      // ─── 1. FORMULARIO DE REGISTRO ─────────────────────────────────
+      if (form.id === 'register-form' || form.querySelector('#reg-fullname')) {
         e.preventDefault();
         e.stopImmediatePropagation();
 
-        const correo = inputEmail.value.trim();
-        const contra = inputPassword.value;
+        const inputNombre = form.querySelector('#reg-fullname') || form.querySelector('input[name="nombre"]');
+        const inputEmail = form.querySelector('#reg-email') || form.querySelector('input[type="email"]');
+        const inputPass = form.querySelector('#reg-password') || form.querySelector('input[type="password"]');
+        const inputConfirm = form.querySelector('#reg-confirm');
+        const errEl = form.querySelector('#reg-error');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        const mostrarError = (msg) => {
+          if (errEl) {
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+          } else {
+            alert(msg);
+          }
+        };
+
+        if (errEl) errEl.style.display = 'none';
+
+        const nombreCompleto = inputNombre?.value.trim() || '';
+        const correo = inputEmail?.value.trim() || '';
+        const contra = inputPass?.value || '';
+        const confirmar = inputConfirm?.value || '';
+
+        // Validaciones del lado del cliente
+        if (!nombreCompleto) return mostrarError('Por favor ingresa tu nombre y apellido.');
+        if (!correo || !correo.includes('@')) return mostrarError('Ingresa un correo electrónico válido.');
+        if (contra.length < 6) return mostrarError('La contraseña debe tener al menos 6 caracteres.');
+        if (inputConfirm && contra !== confirmar) return mostrarError('Las contraseñas no coinciden.');
+
+        const partes = nombreCompleto.split(' ');
+        const nombre = partes[0] || 'Cliente';
+        const apellido = partes.slice(1).join(' ') || 'Sin Apellido';
+
+        // Estado de carga
+        const textoOriginal = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Creando cuenta...';
+        }
+
+        try {
+          const res = await fetch('/api/registro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, apellido, correo, contra })
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            const nuevoUsuario = {
+              id: result.id || Date.now(),
+              fullName: nombreCompleto,
+              email: correo,
+              role: 'client',
+              createdAt: new Date().toISOString().split('T')[0]
+            };
+
+            // Sincronizar sesiones en localStorage
+            localStorage.setItem('ps_session', JSON.stringify(nuevoUsuario));
+            localStorage.setItem('pixelstore_user', JSON.stringify(nuevoUsuario));
+
+            if (typeof showToast === 'function') {
+              showToast('✅ ¡Cuenta creada con éxito! Bienvenido/a ' + nombre);
+            }
+
+            setTimeout(() => window.location.reload(), 600);
+          } else {
+            mostrarError(result.error || 'No se pudo completar el registro.');
+          }
+        } catch (err) {
+          console.error('Error de conexión:', err);
+          mostrarError('No se pudo conectar con el servidor.');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = textoOriginal;
+          }
+        }
+        return;
+      }
+
+      // ─── 2. FORMULARIO DE INICIO DE SESIÓN ────────────────────────
+      if (form.id === 'login-form' || form.querySelector('#login-user')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const inputUser = form.querySelector('#login-user') || form.querySelector('input[type="text"], input[type="email"]');
+        const inputPass = form.querySelector('#login-pass') || form.querySelector('input[type="password"]');
+        const errEl = form.querySelector('#login-error');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        const mostrarError = (msg) => {
+          if (errEl) {
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+          } else {
+            alert(msg);
+          }
+        };
+
+        if (errEl) errEl.style.display = 'none';
+
+        const correo = inputUser?.value.trim() || '';
+        const contra = inputPass?.value || '';
+
+        if (!correo || !contra) return mostrarError('Por favor completa todos los campos.');
+
+        const textoOriginal = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Iniciando sesión...';
+        }
 
         try {
           const res = await fetch('/api/login', {
@@ -87,8 +149,7 @@
 
           const result = await res.json();
 
-          if (res.ok) {
-            // Estructura requerida por la plantilla
+          if (res.ok && result.cliente) {
             const usuarioSesion = {
               id: result.cliente.id,
               fullName: `${result.cliente.nombre} ${result.cliente.apellido}`.trim(),
@@ -97,19 +158,26 @@
               createdAt: new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
             };
 
-            // Guardar sesión
+            // Guardar para app.js y compatibilidad
+            localStorage.setItem('ps_session', JSON.stringify(usuarioSesion));
             localStorage.setItem('pixelstore_user', JSON.stringify(usuarioSesion));
-            localStorage.setItem('currentUser', JSON.stringify(usuarioSesion));
-            localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
 
-            alert('¡Bienvenido, ' + result.cliente.nombre + '!');
-            window.location.reload();
+            if (typeof showToast === 'function') {
+              showToast('🎮 ¡Bienvenido/a, ' + result.cliente.nombre + '!');
+            }
+
+            setTimeout(() => window.location.reload(), 600);
           } else {
-            alert('Error de acceso: ' + (result.error || 'Credenciales inválidas'));
+            mostrarError(result.error || 'Correo o contraseña incorrectos.');
           }
         } catch (err) {
           console.error('Error de conexión:', err);
-          alert('Error al conectar con la base de datos.');
+          mostrarError('Error de conexión con el servidor.');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = textoOriginal;
+          }
         }
       }
     }, true);
