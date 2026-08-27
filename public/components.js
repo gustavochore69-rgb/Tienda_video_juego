@@ -98,36 +98,134 @@ function renderHeader({ currentUser, cart, page }) {
 function renderFooter() {
   const year = new Date().getFullYear();
   return `
-  <footer style="position:relative;background:var(--bg);color:var(--muted);margin-top:56px;padding:40px 0 22px;isolation:isolate;">
-    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,0,47,0.3),rgba(0,229,255,0.3),transparent);"></div>
+  <footer style="position:relative;background:var(--bg);color:var(--muted);margin-top:60px;padding:48px 0 24px;isolation:isolate;">
+    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,0,47,0.35),rgba(0,229,255,0.35),transparent);"></div>
+    
     <div style="max-width:var(--maxw);margin:0 auto;padding:0 20px;">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:28px 24px;padding-bottom:24px;">
-        <div style="grid-column:1/-1;max-width:400px;">
-          <h5 style="margin:0 0 10px;font-size:16px;font-weight:800;letter-spacing:0.4px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;">PixelStore</h5>
-          <p style="margin:0;font-size:13px;line-height:1.6;">Tu tienda de confianza para videojuegos digitales y físicos. Juega más, paga menos.</p>
-        </div>
-        <div>
-          <h6 style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-strong,#eef2f4);">Tienda</h6>
-          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;">
-            ${['Juegos destacados','Ofertas','Novedades','Consolas'].map(t => `<li><a href="#" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color 160ms ease;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='var(--muted)'">${t}</a></li>`).join('')}
-          </ul>
-        </div>
-        <div>
-          <h6 style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-strong,#eef2f4);">Soporte</h6>
-          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;">
-            ${['Ayuda','Contacto','Términos de uso','Privacidad'].map(t => `<li><a href="#" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color 160ms ease;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='var(--muted)'">${t}</a></li>`).join('')}
-          </ul>
-        </div>
-        <div>
-          <h6 style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-strong,#eef2f4);">Síguenos</h6>
-          <div style="display:flex;flex-wrap:wrap;gap:12px;">
-            ${['Twitter','Instagram','Discord','YouTube'].map(t => `<a href="#" style="font-size:13px;color:var(--muted);text-decoration:none;transition:color 160ms ease;" onmouseenter="this.style.color='#fff'" onmouseleave="this.style.color='var(--muted)'">${t}</a>`).join('')}
+      
+      <!-- ── Barra de Confianza Gamer (Trust Badges) ── -->
+      <div class="trust-badges-grid">
+        
+        <div class="trust-badge badge-red">
+          <div class="trust-badge-icon icon-red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div>
+            <div class="trust-badge-title">Entrega Inmediata</div>
+            <div class="trust-badge-sub">Códigos y descargas al instante</div>
           </div>
         </div>
+
+        <div class="trust-badge badge-cyan">
+          <div class="trust-badge-icon icon-cyan">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div class="trust-badge-title">Pago 100% Seguro</div>
+            <div class="trust-badge-sub">Transacciones protegidas</div>
+          </div>
+        </div>
+
+        <div class="trust-badge badge-green">
+          <div class="trust-badge-icon icon-green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+          </div>
+          <div>
+            <div class="trust-badge-title">Garantía Original</div>
+            <div class="trust-badge-sub">Juegos y consolas oficiales</div>
+          </div>
+        </div>
+
+        <div class="trust-badge badge-gold">
+          <div class="trust-badge-icon icon-gold">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div>
+            <div class="trust-badge-title">Soporte Gamer</div>
+            <div class="trust-badge-sub">Asistencia rápida y directa</div>
+          </div>
+        </div>
+
       </div>
-      <div style="border-top:1px solid rgba(255,255,255,0.05);padding-top:16px;font-size:12px;">
-        <p style="margin:0;">© ${year} PixelStore – Todos los derechos reservados.</p>
+
+      <!-- ── Columnas de Navegación e Información ── -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px 24px;padding-bottom:32px;">
+        
+        <!-- Marca y descripción -->
+        <div style="grid-column:span 2;max-width:380px;">
+          <h5 style="margin:0 0 10px;font-size:18px;font-weight:800;letter-spacing:0.4px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block;">PixelStore</h5>
+          <p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:var(--muted);">Tu tienda de confianza para videojuegos digitales y físicos. Juega más, paga menos.</p>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#a4d96f;box-shadow:0 0 8px #a4d96f;"></span>
+            <span style="font-size:12px;font-weight:600;color:var(--text-strong,#fff);">Servidores y catálogo activos</span>
+          </div>
+        </div>
+
+        <!-- Tienda -->
+        <div>
+          <h6 style="margin:0 0 14px;font-size:11.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-strong,#eef2f4);">Tienda</h6>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;">
+            <li><button data-nav="store" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent2)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">🎮 Juegos destacados</button></li>
+            <li><button data-nav="store" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent2)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">🔥 Ofertas de la semana</button></li>
+            <li><button data-nav="consolas" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent2)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">🕹️ Consolas y hardware</button></li>
+            <li><button data-nav="store" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent2)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">⚡ Novedades</button></li>
+          </ul>
+        </div>
+
+        <!-- Soporte -->
+        <div>
+          <h6 style="margin:0 0 14px;font-size:11.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-strong,#eef2f4);">Soporte</h6>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;">
+            <li><button onclick="if(typeof showToast==='function')showToast('💬 Contacta a soporte en soporte@pixelstore.com');" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">Centro de Ayuda</button></li>
+            <li><button onclick="if(typeof showToast==='function')showToast('📱 WhatsApp de atención: +591 7000-0000');" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">Contacto</button></li>
+            <li><button onclick="if(typeof showToast==='function')showToast('📄 Compras 100% garantizadas y protegidas');" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">Términos de servicio</button></li>
+            <li><button onclick="if(typeof showToast==='function')showToast('🔒 Tus datos personales están seguros');" style="background:none;border:none;padding:0;font-size:13px;color:var(--muted);cursor:pointer;font-family:inherit;transition:all 160ms ease;text-align:left;" onmouseenter="this.style.color='var(--accent)';this.style.transform='translateX(4px)'" onmouseleave="this.style.color='var(--muted)';this.style.transform='none'">Privacidad</button></li>
+          </ul>
+        </div>
+
+        <!-- Comunidad / Redes -->
+        <div>
+          <h6 style="margin:0 0 14px;font-size:11.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-strong,#eef2f4);">Comunidad</h6>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            
+            <!-- Discord -->
+            <a href="https://discord.com" target="_blank" rel="noopener" title="Discord" style="width:38px;height:38px;border-radius:10px;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.08));display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:all 180ms ease;" onmouseenter="this.style.borderColor='#5865F2';this.style.color='#5865F2';this.style.boxShadow='0 0 12px rgba(88,101,242,0.3)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.borderColor='var(--border-subtle)';this.style.color='var(--muted)';this.style.boxShadow='none';this.style.transform='none'">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+            </a>
+
+            <!-- Twitter / X -->
+            <a href="https://twitter.com" target="_blank" rel="noopener" title="X (Twitter)" style="width:38px;height:38px;border-radius:10px;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.08));display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:all 180ms ease;" onmouseenter="this.style.borderColor='var(--text-strong)';this.style.color='var(--text-strong)';this.style.boxShadow='0 0 12px rgba(255,255,255,0.2)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.borderColor='var(--border-subtle)';this.style.color='var(--muted)';this.style.boxShadow='none';this.style.transform='none'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+
+            <!-- Instagram -->
+            <a href="https://instagram.com" target="_blank" rel="noopener" title="Instagram" style="width:38px;height:38px;border-radius:10px;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.08));display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:all 180ms ease;" onmouseenter="this.style.borderColor='#E1306C';this.style.color='#E1306C';this.style.boxShadow='0 0 12px rgba(225,48,108,0.3)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.borderColor='var(--border-subtle)';this.style.color='var(--muted)';this.style.boxShadow='none';this.style.transform='none'">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+
+            <!-- YouTube -->
+            <a href="https://youtube.com" target="_blank" rel="noopener" title="YouTube" style="width:38px;height:38px;border-radius:10px;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.08));display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:all 180ms ease;" onmouseenter="this.style.borderColor='#FF0000';this.style.color='#FF0000';this.style.boxShadow='0 0 12px rgba(255,0,0,0.3)';this.style.transform='translateY(-2px)'" onmouseleave="this.style.borderColor='var(--border-subtle)';this.style.color='var(--muted)';this.style.boxShadow='none';this.style.transform='none'">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+
+          </div>
+        </div>
+
       </div>
+
+      <!-- ── Pie Inferior: Copyright y Métodos de Pago ── -->
+      <div style="border-top:1px solid var(--border-subtle,rgba(255,255,255,0.06));padding-top:20px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;font-size:12.5px;">
+        <p style="margin:0;color:var(--muted);">© ${year} <strong style="color:var(--text-strong,#fff);font-weight:700;">PixelStore</strong> – Todos los derechos reservados.</p>
+        
+        <!-- Métodos de pago -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:11.5px;color:var(--muted);margin-right:4px;">Métodos de pago:</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.08));font-size:11px;color:var(--text-strong,#fff);font-weight:600;">📱 QR Bancario</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.08));font-size:11px;color:var(--text-strong,#fff);font-weight:600;">💵 Efectivo</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.08));font-size:11px;color:var(--text-strong,#fff);font-weight:600;">💳 Tarjetas</span>
+        </div>
+      </div>
+
     </div>
   </footer>`;
 }
