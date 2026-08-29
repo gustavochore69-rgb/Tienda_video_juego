@@ -28,7 +28,6 @@ async function verificarSesion() {
             };
             localStorage.setItem('ps_session', JSON.stringify(App.state.currentUser));
             
-            // CARGAR USUARIOS DESDE LA API
             await cargarUsuariosDesdeAPI();
         }
         mostrarAutenticado(usuario);
@@ -40,14 +39,12 @@ async function verificarSesion() {
     }
 }
 
-// ===== NUEVA FUNCIÓN: CARGAR USUARIOS DESDE LA API =====
 async function cargarUsuariosDesdeAPI() {
     try {
         const response = await fetch('/api/admin/usuarios');
         if (response.ok) {
             const usuarios = await response.json();
             App.state.users = usuarios;
-            // Si estamos en admin, re-renderizar
             if (App.state.page === 'admin') {
                 App.render();
             }
@@ -243,6 +240,7 @@ const App = {
         window.location.href = urls[page] || 'index.html';
     },
 
+    // ===== LOGIN =====
     login(identifier, password) {
         const users = this.state.users;
         const user = users.find(u =>
@@ -262,6 +260,71 @@ const App = {
         
         setTimeout(() => { window.location.href = url; }, 700);
         return null;
+    },
+
+    // ===== REGISTER (CORREGIDO) =====
+    register(data) {
+        if (!data.fullName || !data.email || !data.password) {
+            showToast('❌ Todos los campos son obligatorios.');
+            return;
+        }
+        
+        const nombre = data.fullName.split(' ')[0] || 'Cliente';
+        const apellido = data.fullName.split(' ').slice(1).join(' ') || 'Sin Apellido';
+        
+        return fetch('/api/registro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nombre: nombre,
+                apellido: apellido,
+                correo: data.email,
+                contra: data.password,
+                rol: 'cliente'
+            })
+        })
+        .then(async res => {
+            const result = await res.json();
+            
+            if (!res.ok) {
+                if (result.error && result.error.includes('correo ya está registrado')) {
+                    showToast('❌ Este correo ya está registrado.');
+                    return 'error';
+                }
+                showToast('❌ Error al registrar: ' + (result.error || 'Error desconocido'));
+                return 'error';
+            }
+            
+            const newUser = {
+                id: result.userId || Date.now(),
+                fullName: data.fullName,
+                username: data.email.split('@')[0],
+                email: data.email,
+                phone: data.phone || '',
+                role: 'cliente',
+                password: data.password,
+                createdAt: new Date().toISOString().split('T')[0]
+            };
+            
+            const users = this.state.users;
+            const updated = [...users, newUser];
+            localStorage.setItem('ps_users', JSON.stringify(updated));
+            localStorage.setItem('ps_session', JSON.stringify(newUser));
+            
+            this.setState({ 
+                users: updated, 
+                currentUser: newUser, 
+                modal: null 
+            });
+            
+            showToast('✅ ¡Cuenta creada exitosamente!');
+            return 'success';
+        })
+        .catch(error => {
+            console.error('Error en registro:', error);
+            showToast('❌ Error al conectar con la base de datos.');
+            return 'error';
+        });
     },
 
     logout() {
@@ -553,7 +616,7 @@ const App = {
         showToast(target.banned ? '✅ Usuario reactivado' : '🚫 Usuario baneado');
     },
 
-    // ===== RENDER CORREGIDO =====
+    // ===== RENDER =====
     render() {
         const { page, currentUser, modal, cart, cartOpen, paymentMethod, selectedProduct, favorites, orders, notifications } = this.state;
 
@@ -900,7 +963,7 @@ function bindLoginForm(form, app) {
 }
 
 function bindRegisterForm(form, app) {
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const errEl = document.getElementById('reg-error');
         const name = document.getElementById('reg-fullname').value.trim();
@@ -908,14 +971,45 @@ function bindRegisterForm(form, app) {
         const email = document.getElementById('reg-email').value.trim();
         const pass = document.getElementById('reg-password').value;
         const confirm = document.getElementById('reg-confirm').value;
+        
         errEl.style.display = 'none';
-        if (!name) { errEl.textContent = 'El nombre completo es obligatorio.'; errEl.style.display = 'block'; return; }
-        if (!phone) { errEl.textContent = 'El teléfono es obligatorio.'; errEl.style.display = 'block'; return; }
-        if (!email || !email.includes('@')) { errEl.textContent = 'Ingresa un correo válido.'; errEl.style.display = 'block'; return; }
-        if (pass.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.'; errEl.style.display = 'block'; return; }
-        if (pass !== confirm) { errEl.textContent = 'Las contraseñas no coinciden.'; errEl.style.display = 'block'; return; }
-        const err = app.register({ fullName: name, phone, email, password: pass });
-        if (err) { errEl.textContent = err; errEl.style.display = 'block'; }
+        
+        if (!name) { 
+            errEl.textContent = 'El nombre completo es obligatorio.'; 
+            errEl.style.display = 'block'; 
+            return; 
+        }
+        if (!phone) { 
+            errEl.textContent = 'El teléfono es obligatorio.'; 
+            errEl.style.display = 'block'; 
+            return; 
+        }
+        if (!email || !email.includes('@')) { 
+            errEl.textContent = 'Ingresa un correo válido.'; 
+            errEl.style.display = 'block'; 
+            return; 
+        }
+        if (pass.length < 6) { 
+            errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.'; 
+            errEl.style.display = 'block'; 
+            return; 
+        }
+        if (pass !== confirm) { 
+            errEl.textContent = 'Las contraseñas no coinciden.'; 
+            errEl.style.display = 'block'; 
+            return; 
+        }
+        
+        const result = await app.register({ 
+            fullName: name, 
+            phone: phone, 
+            email: email, 
+            password: pass 
+        });
+        
+        if (result === 'error') {
+            return;
+        }
     });
 }
 
