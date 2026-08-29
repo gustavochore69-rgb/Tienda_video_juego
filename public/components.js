@@ -18,11 +18,13 @@ function renderStars(rating, size) {
 
 // ─── HEADER ──────────────────────────────────────────────────
 function renderHeader({ currentUser, cart, page }) {
+  console.log('Renderizando header con usuario:', currentUser);
   const cartCount = cart.reduce((total, item) => total + item.qty, 0);
-  const isAdmin = currentUser?.role === 'admin';
-  const isVendor = currentUser?.role === 'vendor';
+  
+  const isAdmin = currentUser?.role === 'administrador' || currentUser?.role === 'admin';
+  const isVendor = currentUser?.role === 'vendedor' || currentUser?.role === 'vendor';
   const isLight = document.body.classList.contains('light');
-  const roleColor = currentUser?.role === 'admin' ? 'var(--accent)' : currentUser?.role === 'vendor' ? 'var(--accent2)' : 'var(--muted)';
+  const roleColor = (currentUser?.role === 'administrador' || currentUser?.role === 'admin') ? 'var(--accent)' : (currentUser?.role === 'vendedor' || currentUser?.role === 'vendor') ? 'var(--accent2)' : 'var(--muted)';
 
   function navBtn(label, target) {
     const active = page === target;
@@ -33,16 +35,14 @@ function renderHeader({ currentUser, cart, page }) {
   <header class="site-header">
     <div style="max-width:var(--maxw);margin:0 auto;padding:0 20px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;min-height:60px;">
       
-      <!-- Logo -->
       <button data-nav="store" style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;">
-        <svg width="36" height="25" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 5px #ff002f) drop-shadow(0 0 10px rgba(0,229,255,0.6));"><defs><linearGradient id="logo-glow" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff002f"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs><!-- Cuerpo principal negro --><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="#000"/><path d="M72 68 C77 49 94 39 116 39 H153 C162 39 168 44 170 53 L175 70 H88 C82 70 76 70 72 68 Z" fill="#000"/><path d="M448 68 C443 49 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H432 C438 70 444 70 448 68 Z" fill="#000"/><!-- Borde degradado visible del cuerpo --><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="none" stroke="url(#logo-glow)" stroke-width="6"/><!-- Pantalla --><rect x="174" y="62" width="172" height="83" rx="2" fill="url(#logo-glow)" opacity="0.15"/><rect x="181" y="68" width="158" height="70" rx="1" fill="#111"/><!-- D-PAD con borde degradado --><rect x="78" y="78" width="18" height="58" rx="2" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><rect x="58" y="98" width="58" height="18" rx="2" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><!-- Botones derechos con borde degradado --><circle cx="407" cy="72" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="382" cy="103" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="438" cy="103" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="410" cy="132" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><!-- Joysticks con borde degradado --><circle cx="181" cy="204" r="25" fill="#111" stroke="url(#logo-glow)" stroke-width="2.5"/><circle cx="181" cy="204" r="18" fill="#000"/><circle cx="339" cy="204" r="25" fill="#111" stroke="url(#logo-glow)" stroke-width="2.5"/><circle cx="339" cy="204" r="18" fill="#000"/><!-- Botones centrales --><rect x="204" y="157" width="25" height="10" rx="5" fill="#111" stroke="url(#logo-glow)" stroke-width="1.5"/><rect x="291" y="157" width="25" height="10" rx="5" fill="#111" stroke="url(#logo-glow)" stroke-width="1.5"/><rect x="249" y="157" width="22" height="8" rx="4" fill="#111" stroke="url(#logo-glow)" stroke-width="1.5"/></svg>
+        <svg width="36" height="25" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 5px #ff002f) drop-shadow(0 0 10px rgba(0,229,255,0.6));"><defs><linearGradient id="logo-glow" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff002f"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="#000"/><path d="M72 68 C77 49 94 39 116 39 H153 C162 39 168 44 170 53 L175 70 H88 C82 70 76 70 72 68 Z" fill="#000"/><path d="M448 68 C443 49 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H432 C438 70 444 70 448 68 Z" fill="#000"/><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="none" stroke="url(#logo-glow)" stroke-width="6"/><rect x="174" y="62" width="172" height="83" rx="2" fill="url(#logo-glow)" opacity="0.15"/><rect x="181" y="68" width="158" height="70" rx="1" fill="#111"/><rect x="78" y="78" width="18" height="58" rx="2" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><rect x="58" y="98" width="58" height="18" rx="2" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="407" cy="72" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="382" cy="103" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="438" cy="103" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="410" cy="132" r="13" fill="#111" stroke="url(#logo-glow)" stroke-width="2"/><circle cx="181" cy="204" r="25" fill="#111" stroke="url(#logo-glow)" stroke-width="2.5"/><circle cx="181" cy="204" r="18" fill="#000"/><circle cx="339" cy="204" r="25" fill="#111" stroke="url(#logo-glow)" stroke-width="2.5"/><circle cx="339" cy="204" r="18" fill="#000"/><rect x="204" y="157" width="25" height="10" rx="5" fill="#111" stroke="url(#logo-glow)" stroke-width="1.5"/><rect x="291" y="157" width="25" height="10" rx="5" fill="#111" stroke="url(#logo-glow)" stroke-width="1.5"/><rect x="249" y="157" width="22" height="8" rx="4" fill="#111" stroke="url(#logo-glow)" stroke-width="1.5"/></svg>
         <div style="text-align:left;">
           <div style="font-size:15px;font-weight:800;color:var(--text-strong,#fff);letter-spacing:0.5px;">PixelStore</div>
           <div style="font-size:10px;color:var(--muted);margin-top:-2px;">Tu tienda de videojuegos</div>
         </div>
       </button>
 
-      <!-- Search -->
       <form id="search-form" class="search-form" style="flex:1;display:flex;align-items:center;max-width:480px;border-radius:8px;min-width:0;">
         <span style="padding:0 10px;flex-shrink:0;display:flex;align-items:center;"><svg width="18" height="17" viewBox="0 0 440 420" xmlns="http://www.w3.org/2000/svg" style="display:block;"><circle cx="136" cy="139" r="84" fill="none" stroke="#9aa1a6" stroke-width="16"/><path d="M 86 169 C 78 148 81 123 92 105 C 103 87 120 76 140 73" fill="none" stroke="#9aa1a6" stroke-width="14" stroke-linecap="round"/><path d="M 195 198 L 218 221 L 201 238 L 178 215 Z" fill="#9aa1a6"/><path d="M 210 214 L 278 282 C 286 290 286 303 278 311 L 269 320 C 261 328 248 328 240 320 L 172 252 C 164 244 164 231 172 223 L 181 214 C 189 206 202 206 210 214 Z" fill="#9aa1a6"/><path d="M 202 226 L 267 291 C 271 295 271 301 267 305 L 263 309 C 267 303 267 298 262 293 L 197 228 Z" fill="#ffffff"/><path d="M 248 318 C 255 325 264 325 271 319 L 278 312 C 285 305 285 296 279 290 L 268 300 C 273 305 273 310 268 315 L 263 320 C 258 324 252 323 248 318 Z" fill="#9aa1a6"/></svg></span>
         <input id="search-input" type="search" placeholder="Buscar juegos, consolas..." style="flex:1;min-width:0;padding:9px 8px;background:transparent;border:none;color:var(--text);font-size:13.5px;font-family:inherit;outline:none;"
@@ -53,21 +53,19 @@ function renderHeader({ currentUser, cart, page }) {
           onmouseleave="this.style.filter='none'">Buscar</button>
       </form>
 
-      <!-- Nav -->
       <nav style="display:flex;gap:16px;align-items:center;flex-shrink:0;">
         ${navBtn('Tienda', 'store')}
         ${navBtn('Consolas', 'consolas')}
         ${currentUser ? navBtn('Perfil', 'profile') : ''}
-        ${isAdmin ? navBtn('Admin', 'admin') : ''}
+        ${isAdmin ? `<a href="/admin.html" style="text-decoration:none;color:${page === 'admin' ? 'var(--text-strong,#fff)' : 'var(--muted)'};font-weight:${page === 'admin' ? 700 : 400};font-size:13.5px;cursor:pointer;padding:4px 2px;border-bottom:${page === 'admin' ? '2px solid var(--accent)' : '2px solid transparent'};transition:color 160ms ease,border-color 160ms ease;font-family:inherit;">Admin</a>` : ''}
         ${isVendor ? navBtn('Mi Panel', 'vendor') : ''}
       </nav>
 
-      <!-- User / Auth -->
       <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-shrink:0;">
         <button id="btn-theme-toggle" class="theme-toggle-btn" type="button" aria-label="Cambiar a modo ${isLight ? 'oscuro' : 'claro'}">
           ${isLight ? 'Oscuro' : 'Claro'}
         </button>
-        ${currentUser?.role === 'client' ? `
+        ${currentUser?.role === 'client' || currentUser?.role === 'cliente' ? `
           <button data-request-vendor class="btn-glow" type="button" style="padding:7px 12px;background:var(--surface);border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--text-strong,#eef2f4);font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;">
             Ser vendedor
           </button>
@@ -75,7 +73,7 @@ function renderHeader({ currentUser, cart, page }) {
         ${currentUser ? `
           <div style="display:flex;flex-direction:column;align-items:flex-end;margin-right:4px;">
             <span style="font-size:13px;font-weight:700;color:var(--text-strong,#fff);">${currentUser.fullName.split(' ')[0]}</span>
-            <span style="font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${roleColor};">${ROLE_LABELS[currentUser.role]}</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${roleColor};">${ROLE_LABELS[currentUser.role] || currentUser.role}</span>
           </div>
           <button id="btn-logout" style="padding:7px 14px;background:transparent;border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;transition:color 160ms,border-color 160ms;"
             onmouseenter="this.style.color='#fff';this.style.borderColor='rgba(255,0,47,0.4)'"
@@ -135,20 +133,10 @@ function renderFooter() {
 // ─── CART SIDEBAR ─────────────────────────────────────────────
 function renderCart(cart, open, paymentMethod = 'cash') {
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
-  // Cambia esta URL por tu archivo, por ejemplo: 'assets/mi-qr.png'.
-  // Es solo una imagen de muestra; PixelStore no genera ni procesa códigos QR reales.
   const QR_PAYMENT_IMAGE = 'https://placehold.co/280x280/111215/00e5ff?text=Tu+imagen+QR';
   const paymentOptions = [
-    {
-      id: 'cash',
-      label: 'Efectivo',
-      icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h16v10H4z"/><path d="M8 7.5V5h8v2.5M12 10.25a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Z"/></svg>`
-    },
-    {
-      id: 'qr',
-      label: 'Código QR',
-      icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM15 14h2v2h-2zM19 14h1v3h-3M14 18h2v2h-2zM18 19h2v1h-2z"/></svg>`
-    }
+    { id: 'cash', label: 'Efectivo', icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h16v10H4z"/><path d="M8 7.5V5h8v2.5M12 10.25a2.25 2.25 0 1 1 0 4.5 2.25 2.25 0 0 1 0-4.5Z"/></svg>` },
+    { id: 'qr', label: 'Código QR', icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM15 14h2v2h-2zM19 14h1v3h-3M14 18h2v2h-2zM18 19h2v1h-2z"/></svg>` }
   ];
   return `
   <div id="cart-overlay" class="cart-overlay ${open ? 'open' : ''}"></div>
@@ -179,8 +167,7 @@ function renderCart(cart, open, paymentMethod = 'cash') {
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
             <span style="font-size:13px;font-weight:700;color:#a4d96f;">$${(item.price * item.qty).toFixed(2)}</span>
-            <button data-remove-cart="${item.id}" data-type="${item.type}" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:0;transition:color 160ms;"
-              onmouseenter="this.style.color='#ff6b6b'" onmouseleave="this.style.color='var(--muted)'">Eliminar</button>
+            <button data-remove-cart="${item.id}" data-type="${item.type}" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;padding:0;transition:color 160ms;" onmouseenter="this.style.color='#ff6b6b'" onmouseleave="this.style.color='var(--muted)'">Eliminar</button>
           </div>
         </div>
       `).join('')}
@@ -218,130 +205,89 @@ function renderCart(cart, open, paymentMethod = 'cash') {
   </aside>`;
 }
 
-// ─── LOGIN MODAL ───────────────────────────────────────────────
-function renderLoginModal() {
+// ============================================
+// ✅ REGISTER MODAL (NUEVO)
+// ============================================
+function renderRegisterModal() {
   return `
-  <div id="modal-backdrop" class="modal-backdrop" style="z-index:120;">
-    <div class="modal-box" style="max-width:440px;" role="dialog" aria-modal="true" aria-labelledby="login-title">
-      <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
-      <h2 id="login-title" style="margin:0 0 6px;font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;">Iniciar sesión</h2>
-      <p style="margin:0 0 20px;color:var(--muted);font-size:13.5px;">Ingresa con tu cuenta de PixelStore.</p>
+  <div class="modal-overlay" id="register-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;">
+    <div class="modal-content" style="background:var(--surface,#1a1a1a);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;width:100%;max-width:450px;box-shadow:0 20px 40px rgba(0,0,0,0.5);">
       
-      <div id="login-error" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:13px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h3 style="margin:0;font-size:1.4rem;font-weight:800;color:#fff;">Crear Cuenta</h3>
+        <button type="button" id="btn-close-modal" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">&times;</button>
+      </div>
 
-      <form id="login-form" autocomplete="off">
-        <div style="margin-bottom:14px;">
-          <label class="field-label">Usuario o correo</label>
-          <input id="login-user" type="text" class="field-input" placeholder="usuario o correo@gmail.com" />
+      <form id="register-form">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Nombre completo</label>
+          <input type="text" id="reg-fullname" required placeholder="Ej: Carlos Pérez" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;" />
         </div>
-        <div style="margin-bottom:18px;">
-          <label class="field-label">Contraseña</label>
-          <div style="display:flex;gap:8px;">
-            <input id="login-pass" type="password" class="field-input" placeholder="contraseña" style="flex:1;" />
-            <button type="button" data-toggle-pass="login-pass" style="width:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface2,rgba(255,255,255,0.02));border:1px solid var(--border-subtle,rgba(255,255,255,0.09));border-radius:8px;cursor:pointer;padding:0;transition:border-color 160ms;"
-              onmouseenter="this.style.borderColor='rgba(0,229,255,0.35)'"
-              onmouseleave="this.style.borderColor='rgba(255,255,255,0.09)'">
-              <svg class="eye-icon" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" width="22" height="14" style="display:block;"><path d="M18 60 C38 29 66 14 100 14 C134 14 162 29 182 60 C162 91 134 106 100 106 C66 106 38 91 18 60 Z" fill="#9aa1a6"/><path d="M30 60 C48 37 71 26 100 26 C129 26 152 37 170 60 C152 83 129 94 100 94 C71 94 48 83 30 60 Z" fill="#1a1b1f"/><circle cx="100" cy="60" r="30" fill="#9aa1a6"/><circle cx="100" cy="60" r="16" fill="#1a1b1f"/></svg>
-            </button>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Teléfono</label>
+          <input type="text" id="reg-phone" placeholder="Ej: 809-000-0000" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;" />
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Correo electrónico</label>
+          <input type="email" id="reg-email" required placeholder="ejemplo@correo.com" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;" />
+        </div>
+
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Contraseña</label>
+          <input type="password" id="reg-password" required minlength="6" placeholder="Mínimo 6 caracteres" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;" />
+          <div style="display:flex;gap:4px;margin-top:6px;">
+            <span class="strength-segment" style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;"></span>
+            <span class="strength-segment" style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;"></span>
+            <span class="strength-segment" style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;"></span>
+            <span class="strength-segment" style="flex:1;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;"></span>
+            <span id="strength-label" style="font-size:10px;color:var(--muted);margin-left:8px;"></span>
           </div>
         </div>
-        <button type="submit" style="width:100%;padding:11px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;"
-          onmouseenter="this.style.filter='brightness(1.08)';this.style.transform='translateY(-2px)'"
-          onmouseleave="this.style.filter='none';this.style.transform='none'">Iniciar sesión</button>
+
+        <div style="margin-bottom:20px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Confirmar contraseña</label>
+          <input type="password" id="reg-confirm" required placeholder="Repite tu contraseña" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;" />
+          <div id="confirm-hint" style="font-size:11px;margin-top:4px;"></div>
+        </div>
+
+        <div id="reg-error" style="display:none;margin-bottom:14px;padding:8px 12px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:13px;"></div>
+
+        <button type="submit" style="width:100%;padding:12px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:opacity 0.2s;">Crear mi cuenta</button>
       </form>
 
-      <p style="margin:16px 0 0;text-align:center;font-size:13px;color:var(--muted);">
-        ¿No tienes cuenta?&nbsp;
-        <button id="btn-switch-register" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:0;">Regístrate gratis</button>
-      </p>
-
-      <!-- Demo accounts -->
-      <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--border-subtle,rgba(255,255,255,0.07));">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:var(--text-sub,#cfd6db);font-weight:700;margin-bottom:10px;">Cuentas demo</div>
-        <ul style="list-style:none;margin:0;padding:0;">
-          ${DEMO_ACCOUNTS.map(acc => `
-          <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--text-strong,#f2f5f7);">${acc.label}</div>
-              <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${acc.username}</div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-              <div style="font-size:11px;color:var(--muted);">${acc.password}</div>
-              <button data-demo="${acc.role}" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border,rgba(255,255,255,0.1));background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 160ms,color 160ms;"
-                onmouseenter="this.style.background='linear-gradient(90deg,var(--accent),var(--accent2))';this.style.color='#070607';this.style.borderColor='transparent'"
-                onmouseleave="this.style.background='transparent';this.style.color='var(--muted)';this.style.borderColor='var(--border,rgba(255,255,255,0.1))'">Usar</button>
-            </div>
-          </li>`).join('')}
-        </ul>
+      <div style="margin-top:20px;text-align:center;font-size:13px;color:var(--muted);">
+        ¿Ya tienes cuenta? <a href="#" id="btn-switch-login" style="color:var(--accent);text-decoration:none;font-weight:600;">Inicia sesión aquí</a>
       </div>
     </div>
   </div>`;
 }
 
-// ─── REGISTER MODAL ────────────────────────────────────────────
-function renderRegisterModal() {
+// ─── LOGIN MODAL ───────────────────────────────────────────────
+function renderLoginModal() {
   return `
-  <div id="modal-backdrop" class="modal-backdrop" style="z-index:120;">
-    <div class="modal-box" style="max-width:460px;" role="dialog" aria-modal="true" aria-labelledby="register-title">
-      <div style="position:absolute;top:0;left:10%;right:10%;height:2px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div>
-      <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
-      <h2 id="register-title" style="margin:0 0 4px;font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--accent2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;">Crear cuenta</h2>
-      <p style="margin:0 0 22px;color:var(--muted);font-size:13.5px;">Regístrate para acceder a toda la tienda.</p>
-
-      <div id="reg-error" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:13px;border-left:3px solid rgba(255,0,47,0.5);"></div>
-
-      <form id="register-form" autocomplete="off">
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-fullname">Nombre Completo</label>
-          <input id="reg-fullname" type="text" class="field-input" placeholder="Tu nombre y apellido" />
+  <div class="modal-overlay" id="login-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;">
+    <div class="modal-content" style="background:var(--surface,#1a1a1a);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 20px 40px rgba(0,0,0,0.5);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h3 style="margin:0;font-size:1.4rem;font-weight:800;color:#fff;">Iniciar Sesión</h3>
+        <button type="button" id="btn-close-login" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">&times;</button>
+      </div>
+      <form id="login-form">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Correo electrónico o Usuario</label>
+          <input type="text" id="login-user" required placeholder="tu@email.com" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;" />
         </div>
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-phone">Teléfono</label>
-          <input id="reg-phone" type="tel" class="field-input" placeholder="Ej: 9900-1234" />
+        <div style="margin-bottom:24px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Contraseña</label>
+          <input type="password" id="login-pass" required placeholder="••••••••" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;" />
         </div>
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-email">Cuenta Gmail</label>
-          <input id="reg-email" type="email" class="field-input" placeholder="tucuenta@gmail.com" />
-        </div>
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-password">Contraseña</label>
-          <div style="display:flex;gap:8px;">
-            <input id="reg-password" type="password" class="field-input" placeholder="Mínimo 6 caracteres" style="flex:1;" />
-            <button type="button" data-toggle-pass="reg-password" style="width:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.02));border:1px solid var(--border-subtle,rgba(255,255,255,0.09));border-radius:8px;cursor:pointer;padding:0;transition:border-color 160ms;"
-              onmouseenter="this.style.borderColor='rgba(0,229,255,0.35)'"
-              onmouseleave="this.style.borderColor='rgba(255,255,255,0.09)'">
-              <svg class="eye-icon" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" width="22" height="14" style="display:block;"><path d="M18 60 C38 29 66 14 100 14 C134 14 162 29 182 60 C162 91 134 106 100 106 C66 106 38 91 18 60 Z" fill="#9aa1a6"/><path d="M30 60 C48 37 71 26 100 26 C129 26 152 37 170 60 C152 83 129 94 100 94 C71 94 48 83 30 60 Z" fill="#1a1b1f"/><circle cx="100" cy="60" r="30" fill="#9aa1a6"/><circle cx="100" cy="60" r="16" fill="#1a1b1f"/></svg>
-            </button>
-          </div>
-          <div class="strength-bar">
-            <div class="strength-segment"></div>
-            <div class="strength-segment"></div>
-            <div class="strength-segment"></div>
-            <div class="strength-segment"></div>
-            <span id="strength-label" style="font-size:10px;color:var(--muted);margin-left:4px;flex-shrink:0;"></span>
-          </div>
-        </div>
-        <div style="margin-bottom:20px;">
-          <label class="field-label" for="reg-confirm">Repetir Contraseña</label>
-          <div style="display:flex;gap:8px;">
-            <input id="reg-confirm" type="password" class="field-input" placeholder="Repite tu contraseña" style="flex:1;" />
-            <button type="button" data-toggle-pass="reg-confirm" style="width:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.02));border:1px solid var(--border-subtle,rgba(255,255,255,0.09));border-radius:8px;cursor:pointer;padding:0;transition:border-color 160ms;"
-              onmouseenter="this.style.borderColor='rgba(0,229,255,0.35)'"
-              onmouseleave="this.style.borderColor='rgba(255,255,255,0.09)'">
-              <svg class="eye-icon" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" width="22" height="14" style="display:block;"><path d="M18 60 C38 29 66 14 100 14 C134 14 162 29 182 60 C162 91 134 106 100 106 C66 106 38 91 18 60 Z" fill="#9aa1a6"/><path d="M30 60 C48 37 71 26 100 26 C129 26 152 37 170 60 C152 83 129 94 100 94 C71 94 48 83 30 60 Z" fill="#1a1b1f"/><circle cx="100" cy="60" r="30" fill="#9aa1a6"/><circle cx="100" cy="60" r="16" fill="#1a1b1f"/></svg>
-            </button>
-          </div>
-          <p id="confirm-hint" style="margin:5px 0 0;font-size:11.5px;"></p>
-        </div>
-        <button type="submit" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--accent2),var(--accent));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;"
-          onmouseenter="this.style.filter='brightness(1.08)';this.style.transform='translateY(-2px)'"
-          onmouseleave="this.style.filter='none';this.style.transform='none'">Crear mi cuenta</button>
+        <div id="login-error" style="display:none;margin-bottom:14px;padding:8px 12px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:13px;"></div>
+        <button type="submit" style="width:100%;padding:12px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:opacity 0.2s;">Entrar a PixelStore</button>
       </form>
-
-      <p style="margin:16px 0 0;text-align:center;font-size:13px;color:var(--muted);">
-        ¿Ya tienes cuenta?&nbsp;
-        <button id="btn-switch-login" style="background:none;border:none;color:var(--accent);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:0;">Iniciar sesión</button>
-      </p>
+      <div style="margin-top:20px;text-align:center;font-size:13px;color:var(--muted);">
+        ¿No tienes cuenta? <a href="#" id="link-open-register" style="color:var(--accent);text-decoration:none;font-weight:600;">Regístrate aquí</a>
+      </div>
     </div>
   </div>`;
 }
@@ -354,42 +300,31 @@ function renderSellerRequestModal() {
       <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
       <h2 style="margin:0 0 6px;font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;">Solicitar ser vendedor</h2>
       <p style="margin:0 0 18px;color:var(--muted);font-size:13.5px;">Completa los datos del producto que quieres vender.</p>
-
       <form id="seller-request-form">
         <label class="field-label">Teléfono</label>
         <input id="seller-phone" class="field-input" type="text" required>
-
         <label class="field-label">¿Qué quieres vender?</label>
         <select id="seller-sale-type" class="field-input" required>
           <option value="">Seleccionar...</option>
           <option value="Videojuegos">Videojuegos</option>
           <option value="Consolas">Consolas</option>
         </select>
-
         <label class="field-label">Nombre del producto</label>
         <input id="seller-product-title" class="field-input" type="text" required>
-
         <label class="field-label">Descripción del producto</label>
         <textarea id="seller-product-description" class="field-input" rows="4" required></textarea>
-
         <label class="field-label">Precio</label>
         <input id="seller-product-price" class="field-input" type="number" min="0.01" step="0.01" required>
-
         <label class="field-label">Stock</label>
         <input id="seller-product-stock" class="field-input" type="number" min="1" step="1" required>
-
         <label class="field-label">Foto del producto</label>
         <input id="seller-product-image" class="field-input" type="file" accept="image/*" required>
         <p style="margin:5px 0 14px;font-size:11px;color:var(--muted);">Imagen obligatoria. Máximo 5 MB.</p>
-
         <label style="display:flex;align-items:flex-start;gap:9px;margin:14px 0 18px;color:var(--muted);font-size:12.5px;line-height:1.45;">
           <input id="seller-terms" type="checkbox" required style="margin-top:2px;">
           <span>Acepto los derechos, condiciones y responsabilidades de los vendedores de PixelStore.</span>
         </label>
-
-        <button type="submit" style="width:100%;padding:11px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">
-          Enviar solicitud
-        </button>
+        <button type="submit" style="width:100%;padding:11px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">Enviar solicitud</button>
       </form>
     </div>
   </div>`;
@@ -403,12 +338,10 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
   const rating = avgRating(reviews);
   const favorite = currentUser && (favorites[currentUser.id] || []).includes(`${type}-${product.id}`);
   const related = (isGame ? GAMES.filter(item => item.id !== product.id && item.genres.some(genre => product.genres?.includes(genre))) : CONSOLAS.filter(item => item.id !== product.id && item.brand === product.brand)).slice(0, 3);
-
   return `
   <div id="modal-backdrop" class="modal-backdrop" style="z-index:130;">
     <div class="modal-box" style="max-width:640px;" role="dialog" aria-modal="true" aria-labelledby="product-title">
       <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
-
       <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
         <img src="${product.image}" alt="${name}" style="width:100%;max-width:220px;height:150px;object-fit:cover;border-radius:12px;flex-shrink:0;" onerror="this.src='https://via.placeholder.com/220x150/111215/444?text=${isGame ? 'Game' : 'Consola'}'">
         <div style="flex:1;min-width:200px;">
@@ -423,14 +356,11 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
             <span style="font-size:22px;font-weight:800;color:#a4d96f;">$${product.price.toFixed(2)}</span>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button data-add-cart="${product.id}" data-type="${type}" style="padding:10px 20px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;"
-            onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'"
-            onmouseleave="this.style.filter='none';this.style.transform='none'">+ Añadir al carrito</button>
+          <button data-add-cart="${product.id}" data-type="${type}" style="padding:10px 20px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#070607;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;" onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'" onmouseleave="this.style.filter='none';this.style.transform='none'">+ Añadir al carrito</button>
           <button type="button" data-favorite="${product.id}" data-type="${type}" class="favorite-button ${favorite ? 'is-active' : ''}" aria-label="${favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">${favorite ? '♥ Guardado' : '♡ Favorito'}</button>
           </div>
         </div>
       </div>
-
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;padding:14px 16px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:10px;">
         ${isGame ? `
         <div>
@@ -446,18 +376,13 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
           <div style="font-size:13px;color:var(--text-strong,#eef2f4);font-weight:700;">${product.developer || 'N/D'}</div>
         </div>
       </div>
-
       <div style="margin-bottom:24px;">
         <div style="font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:var(--text-sub,#cfd6db);margin-bottom:8px;">Descripción</div>
         <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--muted);">${product.description || 'Sin descripción disponible.'}</p>
       </div>
-
       ${related.length ? `<div style="margin-bottom:24px;"><div style="font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text-sub);margin-bottom:9px;">También te puede gustar</div><div class="related-products">${related.map(item => `<button type="button" data-view-product="${type}-${item.id}"><img src="${item.image}" alt=""><span>${item.title || item.name}</span><strong>$${item.price.toFixed(2)}</strong></button>`).join('')}</div></div>` : ''}
-
-      <!-- Reseñas -->
       <div style="border-top:1px solid var(--border-subtle,rgba(255,255,255,0.07));padding-top:18px;">
         <div style="font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:var(--text-sub,#cfd6db);margin-bottom:12px;">Reseñas ${reviews.length ? `(${reviews.length})` : ''}</div>
-
         <div style="max-height:220px;overflow-y:auto;margin-bottom:18px;display:flex;flex-direction:column;gap:12px;padding-right:4px;">
           ${reviews.length === 0 ? `<p style="font-size:13px;color:var(--muted);">Aún no hay reseñas. ¡Sé el primero en opinar!</p>` : reviews.slice().reverse().map(r => `
             <div style="padding:10px 12px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:9px;">
@@ -470,7 +395,6 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
             </div>
           `).join('')}
         </div>
-
         ${currentUser ? `
           <form id="review-form">
             <div id="review-error" style="display:none;margin-bottom:10px;padding:8px 10px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:12.5px;"></div>
@@ -514,7 +438,6 @@ function renderStore({ activeGenre, searchQuery, reviews, catalogFilters = {} })
 
   return `
   <div>
-    <!-- Hero -->
     <section class="hero-grid" style="position:relative;min-height:56vh;display:flex;align-items:center;margin:16px 20px;border-radius:18px;overflow:hidden;background:radial-gradient(560px 360px at 12% 18%,rgba(255,0,47,0.28),transparent 60%),radial-gradient(520px 400px at 88% 82%,rgba(0,229,255,0.2),transparent 60%),linear-gradient(160deg,#121319 0%,#0a0b0d 55%,#060607 100%);">
       <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,3,4,0) 0%,rgba(4,4,5,0.5) 100%);"></div>
       <div style="position:relative;z-index:2;padding:56px 40px;max-width:var(--maxw);margin:0 auto;width:100%;">
@@ -522,18 +445,12 @@ function renderStore({ activeGenre, searchQuery, reviews, catalogFilters = {} })
         <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-0.6px;margin:0 0 12px;color:#fff;">Bienvenido a PixelStore</h2>
         <p style="color:var(--muted);margin:0 0 24px;max-width:46ch;font-size:15px;">Encuentra tus juegos favoritos, ofertas exclusivas y las últimas novedades — todo en un solo lugar.</p>
         <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-          <button id="btn-explorar" style="padding:12px 22px;background:transparent;border:2px solid var(--accent);color:var(--accent);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;"
-            onmouseenter="this.style.background='rgba(255,0,47,0.08)';this.style.boxShadow='0 24px 60px rgba(255,0,47,0.22)';this.style.transform='translateY(-3px)'"
-            onmouseleave="this.style.background='transparent';this.style.boxShadow='none';this.style.transform='none'">Explorar juegos</button>
-          <button id="btn-consolas" style="padding:12px 22px;background:transparent;border:2px solid rgba(0,229,255,0.5);color:var(--accent2);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;display:inline-flex;align-items:center;gap:8px;"
-            onmouseenter="this.style.background='rgba(0,229,255,0.06)';this.style.transform='translateY(-3px)'"
-            onmouseleave="this.style.background='transparent';this.style.transform='none'"><svg width="22" height="15" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(0,229,255,0.55));"><defs><linearGradient id="gpad-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff002f"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="url(#gpad-grad)"/><path d="M72 68 C77 49 94 39 116 39 H153 C162 39 168 44 170 53 L175 70 H88 C82 70 76 70 72 68 Z" fill="url(#gpad-grad)"/><path d="M448 68 C443 49 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H432 C438 70 444 70 448 68 Z" fill="url(#gpad-grad)"/><rect x="174" y="62" width="172" height="83" rx="2" fill="#0b0b0d"/><rect x="181" y="68" width="158" height="70" rx="1" fill="url(#gpad-grad)"/><g fill="#0b0b0d"><rect x="78" y="78" width="18" height="58" rx="2"/><rect x="58" y="98" width="58" height="18" rx="2"/></g><rect x="78" y="98" width="18" height="18" fill="#0b0b0d"/><circle cx="407" cy="72" r="13" fill="#0b0b0d"/><circle cx="382" cy="103" r="13" fill="#0b0b0d"/><circle cx="438" cy="103" r="13" fill="#0b0b0d"/><circle cx="410" cy="132" r="13" fill="#0b0b0d"/><circle cx="181" cy="204" r="25" fill="#0b0b0d"/><circle cx="181" cy="204" r="18" fill="url(#gpad-grad)"/><circle cx="339" cy="204" r="25" fill="#0b0b0d"/><circle cx="339" cy="204" r="18" fill="url(#gpad-grad)"/><rect x="204" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="291" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="249" y="157" width="22" height="8" rx="4" fill="#0b0b0d"/></svg> Consolas</button>
+          <button id="btn-explorar" style="padding:12px 22px;background:transparent;border:2px solid var(--accent);color:var(--accent);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;" onmouseenter="this.style.background='rgba(255,0,47,0.08)';this.style.boxShadow='0 24px 60px rgba(255,0,47,0.22)';this.style.transform='translateY(-3px)'" onmouseleave="this.style.background='transparent';this.style.boxShadow='none';this.style.transform='none'">Explorar juegos</button>
+          <button id="btn-consolas" style="padding:12px 22px;background:transparent;border:2px solid rgba(0,229,255,0.5);color:var(--accent2);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;display:inline-flex;align-items:center;gap:8px;" onmouseenter="this.style.background='rgba(0,229,255,0.06)';this.style.transform='translateY(-3px)'" onmouseleave="this.style.background='transparent';this.style.transform='none'"><svg width="22" height="15" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(0,229,255,0.55));"><defs><linearGradient id="gpad-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff002f"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="url(#gpad-grad)"/><path d="M72 68 C77 49 94 39 116 39 H153 C162 39 168 44 170 53 L175 70 H88 C82 70 76 70 72 68 Z" fill="url(#gpad-grad)"/><path d="M448 68 C443 49 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H432 C438 70 444 70 448 68 Z" fill="url(#gpad-grad)"/><rect x="174" y="62" width="172" height="83" rx="2" fill="#0b0b0d"/><rect x="181" y="68" width="158" height="70" rx="1" fill="url(#gpad-grad)"/><g fill="#0b0b0d"><rect x="78" y="78" width="18" height="58" rx="2"/><rect x="58" y="98" width="58" height="18" rx="2"/></g><rect x="78" y="98" width="18" height="18" fill="#0b0b0d"/><circle cx="407" cy="72" r="13" fill="#0b0b0d"/><circle cx="382" cy="103" r="13" fill="#0b0b0d"/><circle cx="438" cy="103" r="13" fill="#0b0b0d"/><circle cx="410" cy="132" r="13" fill="#0b0b0d"/><circle cx="181" cy="204" r="25" fill="#0b0b0d"/><circle cx="181" cy="204" r="18" fill="url(#gpad-grad)"/><circle cx="339" cy="204" r="25" fill="#0b0b0d"/><circle cx="339" cy="204" r="18" fill="url(#gpad-grad)"/><rect x="204" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="291" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="249" y="157" width="22" height="8" rx="4" fill="#0b0b0d"/></svg> Consolas</button>
         </div>
       </div>
     </section>
-
     <div style="max-width:var(--maxw);margin:0 auto;padding:0 20px;">
-      <!-- Genre Filter -->
       <div style="display:flex;gap:8px;padding:18px 0 6px;overflow-x:auto;scrollbar-width:none;">
         ${GENRES.map(g => `<button data-genre="${g.id}" class="genre-pill ${activeGenre === g.id && !searchQuery ? 'active' : 'inactive'}">${g.label}</button>`).join('')}
       </div>
@@ -542,8 +459,6 @@ function renderStore({ activeGenre, searchQuery, reviews, catalogFilters = {} })
         <select id="catalog-price"><option value="all">Todos los precios</option><option value="under25" ${catalogFilters.price === 'under25' ? 'selected' : ''}>Menos de $25</option><option value="25to50" ${catalogFilters.price === '25to50' ? 'selected' : ''}>$25 a $50</option><option value="over50" ${catalogFilters.price === 'over50' ? 'selected' : ''}>Más de $50</option></select>
         <label><input id="catalog-deals" type="checkbox" ${catalogFilters.dealsOnly ? 'checked' : ''}> Solo ofertas</label>
       </div>
-
-      <!-- Games Grid -->
       <section id="destacados" style="padding:16px 0 40px;">
         <div style="margin-bottom:22px;">
           <span class="eyebrow">${searchQuery ? 'Resultados de búsqueda' : 'Selección de la semana'}</span>
@@ -579,9 +494,7 @@ function renderGameCard(g, reviews) {
           ${g.originalPrice ? `<span style="font-size:11.5px;color:var(--muted);text-decoration:line-through;margin-right:6px;">$${g.originalPrice.toFixed(2)}</span>` : ''}
           <span style="font-size:16px;font-weight:800;color:#a4d96f;">$${g.price.toFixed(2)}</span>
         </div>
-        <button data-add-cart="${g.id}" data-type="game" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:filter 160ms,transform 160ms;"
-          onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'"
-          onmouseleave="this.style.filter='none';this.style.transform='none'">+ Carrito</button>
+        <button data-add-cart="${g.id}" data-type="game" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:filter 160ms,transform 160ms;" onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'" onmouseleave="this.style.filter='none';this.style.transform='none'">+ Carrito</button>
       </div>
     </div>
   </article>`;
@@ -591,7 +504,6 @@ function renderGameCard(g, reviews) {
 function renderConsolas({ activeBrand, reviews }) {
   const brands = ['todos','PlayStation','Xbox','Nintendo'];
   const consolas = activeBrand === 'todos' ? CONSOLAS : CONSOLAS.filter(c => c.brand === activeBrand);
-
   return `
   <div style="max-width:var(--maxw);margin:0 auto;padding:32px 20px 60px;">
     <div style="margin-bottom:28px;">
@@ -599,8 +511,6 @@ function renderConsolas({ activeBrand, reviews }) {
       <h2 style="margin:0;font-size:2rem;font-weight:800;">Consolas</h2>
       <p style="margin:8px 0 0;color:var(--muted);font-size:14px;">Las mejores consolas de la generación actual.</p>
     </div>
-
-    <!-- Brand Filter -->
     <div style="display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap;">
       ${brands.map(b => `
         <button data-brand="${b}" style="padding:8px 18px;border-radius:999px;font-size:13.5px;cursor:pointer;font-family:inherit;transition:all 180ms ease;
@@ -612,7 +522,6 @@ function renderConsolas({ activeBrand, reviews }) {
         >${b === 'todos' ? 'Todas' : b}</button>
       `).join('')}
     </div>
-
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;">
       ${consolas.map(c => {
         const list = (reviews && reviews[`consola-${c.id}`]) || [];
@@ -631,9 +540,7 @@ function renderConsolas({ activeBrand, reviews }) {
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
               <span style="font-size:17px;font-weight:800;color:#a4d96f;">$${c.price.toFixed(2)}</span>
-              <button data-add-cart="${c.id}" data-type="consola" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;"
-                onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'"
-                onmouseleave="this.style.filter='none';this.style.transform='none'">+ Carrito</button>
+              <button data-add-cart="${c.id}" data-type="consola" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;" onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'" onmouseleave="this.style.filter='none';this.style.transform='none'">+ Carrito</button>
             </div>
           </div>
         </article>
@@ -643,8 +550,11 @@ function renderConsolas({ activeBrand, reviews }) {
   </div>`;
 }
 
-// ─── ADMIN PANEL ──────────────────────────────────────────────
-function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRequests = [] }) {
+// ─── ADMIN PANEL CORREGIDO ──────────────────────────────────────────────
+function renderAdmin({ users, currentUser, vendorProducts = [], orders = [], sellerRequests = [] }) {
+  // Asegurar que users sea un array
+  const userList = Array.isArray(users) ? users : [];
+  
   return `
   <div style="max-width:var(--maxw);margin:0 auto;padding:32px 20px 60px;">
     <div style="margin-bottom:28px;">
@@ -656,11 +566,11 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
     <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px;">
       ${[
-        { label: 'Total usuarios', value: users.length, color: 'var(--accent2)' },
-        { label: 'Admins', value: users.filter(u => u.role === 'admin').length, color: 'var(--accent)' },
-        { label: 'Vendedores', value: users.filter(u => u.role === 'vendor').length, color: '#f5a623' },
-        { label: 'Clientes', value: users.filter(u => u.role === 'client').length, color: '#a4d96f' },
-        { label: 'Baneados', value: users.filter(u => u.banned).length, color: '#ff6b6b' },
+        { label: 'Total usuarios', value: userList.length, color: 'var(--accent2)' },
+        { label: 'Admins', value: userList.filter(u => u.rol === 'administrador' || u.rol === 'admin').length, color: 'var(--accent)' },
+        { label: 'Vendedores', value: userList.filter(u => u.rol === 'vendedor' || u.rol === 'vendor').length, color: '#f5a623' },
+        { label: 'Clientes', value: userList.filter(u => u.rol === 'cliente' || u.rol === 'client').length, color: '#a4d96f' },
+        { label: 'Baneados', value: userList.filter(u => u.activo === false || u.banned === true).length, color: '#ff6b6b' },
         { label: 'Pedidos', value: orders.length, color: '#f5a623' }
       ].map(s => `
         <div style="background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:12px;padding:18px 20px;">
@@ -687,36 +597,32 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
             <thead>
-              <tr>${['ID','Nombre','Email','Teléfono','Rol','Estado','Registrado',''].map(h => `<th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);background:var(--surface2,rgba(255,255,255,0.02));border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.04));white-space:nowrap;">${h}</th>`).join('')}</tr>
+              <tr>${['ID','Nombre','Email','Rol','Estado','Acciones'].map(h => `<th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--muted);background:var(--surface2,rgba(255,255,255,0.02));border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.04));white-space:nowrap;">${h}</th>`).join('')}</tr>
             </thead>
             <tbody>
-              ${users.map((u, i) => `
-                <tr style="border-bottom:${i < users.length-1 ? '1px solid rgba(255,255,255,0.03)' : 'none'};transition:background 160ms;${u.banned ? 'opacity:0.55;' : ''}"
-                  onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
+              ${userList.length === 0 ? `<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">No hay usuarios registrados.</td></tr>` : userList.map((u, i) => `
+                <tr style="border-bottom:${i < userList.length-1 ? '1px solid rgba(255,255,255,0.03)' : 'none'};transition:background 160ms;${u.activo === false ? 'opacity:0.55;' : ''}" onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
                   <td style="padding:13px 16px;font-size:13px;color:var(--muted);">#${u.id}</td>
-                  <td style="padding:13px 16px;font-size:13.5px;font-weight:700;color:var(--text-strong,#eef2f4);white-space:nowrap;">${u.fullName}</td>
-                  <td style="padding:13px 16px;font-size:13px;color:var(--muted);">${u.email}</td>
-                  <td style="padding:13px 16px;font-size:13px;color:var(--muted);">${u.phone}</td>
+                  <td style="padding:13px 16px;font-size:13.5px;font-weight:700;color:var(--text-strong,#eef2f4);white-space:nowrap;">${u.nombre || u.fullName || 'Sin nombre'}</td>
+                  <td style="padding:13px 16px;font-size:13px;color:var(--muted);">${u.correo || u.email || 'Sin email'}</td>
                   <td style="padding:13px 16px;">
-                    <select data-change-role="${u.id}" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:${u.role==='admin'?'var(--accent)':u.role==='vendor'?'var(--accent2)':'#a4d96f'};font-size:11px;font-weight:700;padding:4px 8px;cursor:pointer;font-family:inherit;"
-                      ${u.id === currentUser?.id ? 'disabled' : ''}>
-                      <option value="client" ${u.role==='client'?'selected':''}>Cliente</option>
-                      <option value="vendor" ${u.role==='vendor'?'selected':''}>Vendedor</option>
-                      <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                    <select data-change-role="${u.id}" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:${(u.rol === 'administrador' || u.rol === 'admin') ? 'var(--accent)' : (u.rol === 'vendedor' || u.rol === 'vendor') ? 'var(--accent2)' : '#a4d96f'};font-size:11px;font-weight:700;padding:4px 8px;cursor:pointer;font-family:inherit;" ${u.id === currentUser?.id ? 'disabled' : ''}>
+                      <option value="cliente" ${(u.rol === 'cliente' || u.rol === 'client') ? 'selected' : ''}>Cliente</option>
+                      <option value="vendedor" ${(u.rol === 'vendedor' || u.rol === 'vendor') ? 'selected' : ''}>Vendedor</option>
+                      <option value="administrador" ${(u.rol === 'administrador' || u.rol === 'admin') ? 'selected' : ''}>Administrador</option>
                     </select>
                   </td>
                   <td style="padding:13px 16px;">
-                    <span style="display:inline-block;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;background:${u.banned ? 'rgba(255,0,47,0.12)' : 'rgba(164,217,111,0.12)'};color:${u.banned ? '#ff6b6b' : '#a4d96f'};">${u.banned ? 'Baneado' : 'Activo'}</span>
+                    <span style="display:inline-block;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;background:${u.activo === false ? 'rgba(255,0,47,0.12)' : 'rgba(164,217,111,0.12)'};color:${u.activo === false ? '#ff6b6b' : '#a4d96f'};">${u.activo === false ? 'Baneado' : 'Activo'}</span>
                   </td>
-                  <td style="padding:13px 16px;font-size:12px;color:var(--muted);white-space:nowrap;">${u.createdAt}</td>
                   <td style="padding:13px 16px;white-space:nowrap;">
                     <button data-toggle-ban="${u.id}" ${u.id === currentUser?.id ? 'disabled' : ''} style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:${u.id === currentUser?.id ? 'not-allowed' : 'pointer'};font-family:inherit;
                       ${u.id === currentUser?.id
                         ? 'background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:var(--muted);'
-                        : u.banned
+                        : u.activo === false
                           ? 'background:rgba(164,217,111,0.1);border:1px solid rgba(164,217,111,0.25);color:#a4d96f;'
                           : 'background:rgba(255,0,47,0.08);border:1px solid rgba(255,0,47,0.2);color:#ff6b6b;'}">
-                      ${u.banned ? 'Reactivar' : 'Banear'}
+                      ${u.activo === false ? 'Reactivar' : 'Banear'}
                     </button>
                   </td>
                 </tr>
@@ -732,7 +638,7 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
       <div style="background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:14px;overflow:hidden;">
         <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
           <h4 style="margin:0;font-size:14px;font-weight:700;color:#eef2f4;">Catálogo de productos</h4>
-          <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Como administrador puedes eliminar productos del catálogo. La edición de precios queda a cargo del vendedor.</p>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Como administrador puedes eliminar productos del catálogo.</p>
         </div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
@@ -741,15 +647,13 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
             </thead>
             <tbody>
               ${vendorProducts.length === 0 ? `<tr><td colspan="5" style="padding:24px 16px;text-align:center;font-size:13px;color:var(--muted);">No hay productos en el catálogo.</td></tr>` : vendorProducts.map((p, i) => `
-                <tr style="border-bottom:${i < vendorProducts.length-1 ? '1px solid rgba(255,255,255,0.03)' : 'none'};transition:background 160ms;"
-                  onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
+                <tr style="border-bottom:${i < vendorProducts.length-1 ? '1px solid rgba(255,255,255,0.03)' : 'none'};transition:background 160ms;" onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
                   <td style="padding:8px 16px;"><img src="${p.image}" alt="${p.title}" style="width:44px;height:32px;object-fit:cover;border-radius:5px;" onerror="this.src='https://via.placeholder.com/44x32/111215/444?text=Img'"></td>
                   <td style="padding:13px 16px;font-size:13.5px;font-weight:700;color:var(--text-strong,#eef2f4);white-space:nowrap;">${p.title}</td>
                   <td style="padding:13px 16px;font-size:13.5px;font-weight:700;color:#a4d96f;white-space:nowrap;">$${p.price.toFixed(2)}</td>
                   <td style="padding:13px 16px;font-size:13px;color:var(--muted);">${p.stock}</td>
                   <td style="padding:13px 16px;white-space:nowrap;">
-                    <button data-delete-product="${p.id}" style="padding:5px 12px;background:rgba(255,0,47,0.08);border:1px solid rgba(255,0,47,0.2);border-radius:6px;color:#ff6b6b;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 160ms;"
-                      onmouseenter="this.style.background='rgba(255,0,47,0.14)'" onmouseleave="this.style.background='rgba(255,0,47,0.08)'">Eliminar</button>
+                    <button data-delete-product="${p.id}" style="padding:5px 12px;background:rgba(255,0,47,0.08);border:1px solid rgba(255,0,47,0.2);border-radius:6px;color:#ff6b6b;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 160ms;" onmouseenter="this.style.background='rgba(255,0,47,0.14)'" onmouseleave="this.style.background='rgba(255,0,47,0.08)'">Eliminar</button>
                   </td>
                 </tr>
               `).join('')}
@@ -758,6 +662,8 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
         </div>
       </div>
     </div>
+    
+    <!-- Seller Requests Panel -->
     <div data-admin-panel="seller-requests" style="display:none;">
       <div style="background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:14px;overflow:hidden;">
         <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
@@ -769,9 +675,7 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
             ? `<p style="margin:0;text-align:center;color:var(--muted);font-size:13px;padding:25px 0;">No hay solicitudes pendientes.</p>`
             : sellerRequests.filter(r => r.status === 'pendiente').map(r => `
               <article style="display:grid;grid-template-columns:minmax(180px,240px) 1fr;gap:18px;padding:16px 0;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
-                <div>
-                  ${r.product.image ? `<img src="${r.product.image}" alt="${r.product.title}" style="width:100%;height:150px;object-fit:cover;border-radius:9px;" onerror="this.style.display='none'">` : ''}
-                </div>
+                <div>${r.product.image ? `<img src="${r.product.image}" alt="${r.product.title}" style="width:100%;height:150px;object-fit:cover;border-radius:9px;" onerror="this.style.display='none'">` : ''}</div>
                 <div>
                   <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                     <div>
@@ -793,11 +697,13 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
         </div>
       </div>
     </div>
+    
+    <!-- Orders Panel -->
     <div data-admin-panel="orders" style="display:none;">
       <div style="background:var(--surface);border:1px solid var(--border-subtle);border-radius:14px;overflow:hidden;">
         <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle);"><h4 style="margin:0;font-size:14px;color:var(--text-strong);">Pedidos y estados</h4></div>
         <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr>${['Pedido','Cliente','Total','Pago','Estado'].map(h => `<th style="padding:10px 16px;text-align:left;color:var(--muted);font-size:11px;">${h}</th>`).join('')}</tr></thead><tbody>
-          ${orders.length ? orders.map(order => { const buyer = users.find(user => user.id === order.buyerId); return `<tr style="border-top:1px solid var(--border-subtle);"><td style="padding:12px 16px;color:var(--text);font-size:12px;font-weight:700;">${order.id}</td><td style="padding:12px 16px;color:var(--muted);font-size:12px;">${buyer?.email || 'Cliente'}</td><td style="padding:12px 16px;color:#a4d96f;font-weight:700;">$${order.pricing.total.toFixed(2)}</td><td style="padding:12px 16px;color:var(--muted);font-size:12px;">${order.payment.method === 'qr' ? 'QR' : 'Efectivo'}</td><td style="padding:12px 16px;"><select data-order-status="${order.id}" class="order-status-select">${[['pending_payment','Pendiente'],['paid','Pagado'],['processing','Preparación'],['ready','Listo'],['delivered','Entregado'],['cancelled','Cancelado']].map(([value,label]) => `<option value="${value}" ${order.status === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td></tr>`; }).join('') : '<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Aún no hay pedidos.</td></tr>'}
+          ${orders.length ? orders.map(order => { const buyer = userList.find(user => user.id === order.buyerId); return `<tr style="border-top:1px solid var(--border-subtle);"><td style="padding:12px 16px;color:var(--text);font-size:12px;font-weight:700;">${order.id}</td><td style="padding:12px 16px;color:var(--muted);font-size:12px;">${buyer?.nombre || buyer?.fullName || 'Cliente'}</td><td style="padding:12px 16px;color:#a4d96f;font-weight:700;">$${order.pricing.total.toFixed(2)}</td><td style="padding:12px 16px;color:var(--muted);font-size:12px;">${order.payment.method === 'qr' ? 'QR' : 'Efectivo'}</td><td style="padding:12px 16px;"><select data-order-status="${order.id}" class="order-status-select">${[['pending_payment','Pendiente'],['paid','Pagado'],['processing','Preparación'],['ready','Listo'],['delivered','Entregado'],['cancelled','Cancelado']].map(([value,label]) => `<option value="${value}" ${order.status === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td></tr>`; }).join('') : '<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Aún no hay pedidos.</td></tr>'}
         </tbody></table></div>
       </div>
     </div>
@@ -809,7 +715,6 @@ function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] })
   const liveSales = orders.flatMap(order => order.items.filter(item => item.vendorId === currentUser?.id).map(item => ({ id: order.id, game: item.title, buyer: order.buyerId, amount: item.unitPrice * item.qty, date: order.createdAt.slice(0, 10), status: order.status === 'delivered' ? 'completado' : order.status })));
   const sales = [...liveSales, ...vendorSales];
   const totalRevenue = sales.filter(s => s.status === 'completado').reduce((sum, s) => sum + s.amount, 0);
-
   return `
   <div style="max-width:var(--maxw);margin:0 auto;padding:32px 20px 60px;">
     <div style="margin-bottom:28px;">
@@ -817,8 +722,6 @@ function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] })
       <h2 style="margin:0;font-size:2rem;font-weight:800;">Mi Panel</h2>
       <p style="margin:8px 0 0;color:var(--muted);font-size:14px;">Hola, <strong style="color:var(--text-strong,#eef2f4);">${currentUser?.fullName}</strong> — gestiona tus productos y ventas.</p>
     </div>
-
-    <!-- Stats -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:28px;">
       ${[
         { label: 'Productos', value: vendorProducts.length, color: 'var(--accent2)' },
@@ -832,14 +735,10 @@ function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] })
         </div>
       `).join('')}
     </div>
-
-    <!-- Tabs -->
     <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.06));padding-bottom:0;">
       <button data-vendor-tab="products" class="active-tab" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:400;font-size:13.5px;cursor:pointer;font-family:inherit;margin-bottom:-1px;">Mis Productos</button>
       <button data-vendor-tab="sales" style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:400;font-size:13.5px;cursor:pointer;font-family:inherit;margin-bottom:-1px;">Historial de Ventas</button>
     </div>
-
-    <!-- Products Panel -->
     <div data-vendor-panel="products">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:20px;">
         ${vendorProducts.map(p => `
@@ -850,26 +749,18 @@ function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] })
               <div style="font-size:13px;color:#a4d96f;font-weight:700;margin-bottom:10px;">$${p.price.toFixed(2)}</div>
               <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px;">Stock: ${p.stock} unidades</div>
               <div style="display:flex;gap:8px;">
-                <button data-edit-product="${p.id}" style="flex:1;padding:7px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:7px;color:var(--accent2);font-size:12px;cursor:pointer;font-family:inherit;transition:background 160ms;"
-                  onmouseenter="this.style.background='rgba(0,229,255,0.12)'" onmouseleave="this.style.background='rgba(0,229,255,0.06)'">Editar</button>
-                <button data-delete-product="${p.id}" style="flex:1;padding:7px;background:rgba(255,0,47,0.08);border:1px solid rgba(255,0,47,0.2);border-radius:7px;color:#ff6b6b;font-size:12px;cursor:pointer;font-family:inherit;transition:background 160ms;"
-                  onmouseenter="this.style.background='rgba(255,0,47,0.14)'" onmouseleave="this.style.background='rgba(255,0,47,0.08)'">Eliminar</button>
+                <button data-edit-product="${p.id}" style="flex:1;padding:7px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:7px;color:var(--accent2);font-size:12px;cursor:pointer;font-family:inherit;transition:background 160ms;" onmouseenter="this.style.background='rgba(0,229,255,0.12)'" onmouseleave="this.style.background='rgba(0,229,255,0.06)'">Editar</button>
+                <button data-delete-product="${p.id}" style="flex:1;padding:7px;background:rgba(255,0,47,0.08);border:1px solid rgba(255,0,47,0.2);border-radius:7px;color:#ff6b6b;font-size:12px;cursor:pointer;font-family:inherit;transition:background 160ms;" onmouseenter="this.style.background='rgba(255,0,47,0.14)'" onmouseleave="this.style.background='rgba(255,0,47,0.08)'">Eliminar</button>
               </div>
             </div>
           </div>
         `).join('')}
-
-        <!-- Add product card -->
-        <div id="btn-add-product" style="background:var(--surface2,rgba(255,255,255,0.01));border:2px dashed var(--border,rgba(255,255,255,0.08));border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:10px;cursor:pointer;transition:border-color 200ms,background 200ms;"
-          onmouseenter="this.style.borderColor='rgba(0,229,255,0.3)';this.style.background='rgba(0,229,255,0.03)'"
-          onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.01)'">
+        <div id="btn-add-product" style="background:var(--surface2,rgba(255,255,255,0.01));border:2px dashed var(--border,rgba(255,255,255,0.08));border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:10px;cursor:pointer;transition:border-color 200ms,background 200ms;" onmouseenter="this.style.borderColor='rgba(0,229,255,0.3)';this.style.background='rgba(0,229,255,0.03)'" onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.01)'">
           <div style="font-size:32px;opacity:0.4;">+</div>
           <div style="font-size:13px;color:var(--muted);font-weight:600;">Agregar producto</div>
         </div>
       </div>
     </div>
-
-    <!-- Sales Panel -->
     <div data-vendor-panel="sales" style="display:none;">
       <div style="background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:14px;overflow:hidden;">
         <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
@@ -882,8 +773,7 @@ function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] })
             </thead>
             <tbody>
               ${sales.map((s, i) => `
-                <tr style="border-bottom:${i < sales.length-1?'1px solid rgba(255,255,255,0.03)':'none'};transition:background 160ms;"
-                  onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
+                <tr style="border-bottom:${i < sales.length-1?'1px solid rgba(255,255,255,0.03)':'none'};transition:background 160ms;" onmouseenter="this.style.background='rgba(255,255,255,0.02)'" onmouseleave="this.style.background='transparent'">
                   <td style="padding:13px 16px;font-size:13px;color:var(--muted);">#${s.id}</td>
                   <td style="padding:13px 16px;font-size:13.5px;font-weight:600;color:var(--text-strong,#eef2f4);white-space:nowrap;">${s.game}</td>
                   <td style="padding:13px 16px;font-size:13px;color:var(--muted);">${s.buyer}</td>
@@ -923,14 +813,11 @@ function renderProfile({ currentUser, favorites, orders, notifications, sellerRe
           <div>
             <span class="eyebrow">Vendedores</span>
             <h3 style="margin:4px 0 5px;">¿Quieres vender en PixelStore?</h3>
-            <p style="margin:0;color:var(--muted);font-size:13px;">
-              Envía una solicitud con los datos del producto que quieres publicar.
-            </p>
+            <p style="margin:0;color:var(--muted);font-size:13px;">Envía una solicitud con los datos del producto que quieres publicar.</p>
           </div>
-          ${
-            sellerRequests.some(r => r.userId === currentUser.id && r.status === 'pendiente')
-              ? `<span style="padding:8px 12px;border-radius:8px;background:rgba(245,166,35,0.1);color:#f5a623;font-size:12px;font-weight:700;">Solicitud pendiente</span>`
-              : `<button data-request-vendor class="btn-glow" type="button" style="padding:9px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Quiero ser vendedor</button>`
+          ${sellerRequests.some(r => r.userId === currentUser.id && r.status === 'pendiente')
+            ? `<span style="padding:8px 12px;border-radius:8px;background:rgba(245,166,35,0.1);color:#f5a623;font-size:12px;font-weight:700;">Solicitud pendiente</span>`
+            : `<button data-request-vendor class="btn-glow" type="button" style="padding:9px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Quiero ser vendedor</button>`
           }
         </div>
       </section>

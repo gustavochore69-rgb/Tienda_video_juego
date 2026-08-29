@@ -8,75 +8,207 @@
   <meta property="og:title" content="PixelStore – Tu tienda de videojuegos" />
   <meta property="og:description" content="Juega más, paga menos. Tienda digital con juegos, consolas y mucho más." />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
+
+  <!-- ===== TU APP PRINCIPAL ===== -->
   <div id="app" style="display:flex;flex-direction:column;min-height:100vh;"></div>
 
+  <!-- ===== SCRIPTS ===== -->
   <script src="data.js"></script>
   <script src="components.js"></script>
   <script src="app.js"></script>
 
+  <!-- ============================================
+  VERIFICACIÓN DE SESIÓN AL CARGAR
+  ============================================ -->
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        verificarSesionAlCargar();
+    });
+
+    async function verificarSesionAlCargar() {
+        try {
+            const response = await fetch('/api/usuario');
+            if (response.ok) {
+                const usuario = await response.json();
+                console.log('✅ Sesión activa:', usuario);
+                
+                const usuarioSesion = {
+                    id: usuario.id,
+                    fullName: usuario.nombre || 'Usuario',
+                    username: usuario.email?.split('@')[0] || 'usuario',
+                    email: usuario.email,
+                    role: usuario.rol || 'cliente'
+                };
+                
+                localStorage.setItem('ps_session', JSON.stringify(usuarioSesion));
+                localStorage.setItem('pixelstore_user', JSON.stringify(usuarioSesion));
+                localStorage.setItem('currentUser', JSON.stringify(usuarioSesion));
+                localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
+                
+                mostrarSesionActiva(usuario);
+            } else {
+                console.log('❌ No hay sesión activa');
+                mostrarSesionInactiva();
+            }
+        } catch (error) {
+            console.log('❌ Error al verificar sesión:', error);
+            mostrarSesionInactiva();
+        }
+    }
+
+    function mostrarSesionActiva(usuario) {
+        const statusDiv = document.getElementById('sessionStatus');
+        if (statusDiv) {
+            const roleBadge = {
+                'administrador': 'danger',
+                'vendedor': 'warning',
+                'cliente': 'info'
+            };
+            
+            const nombreMostrar = usuario.nombre || usuario.email || 'Usuario';
+            
+            statusDiv.innerHTML = `
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-user-circle"></i> 
+                    <strong>${nombreMostrar}</strong> 
+                    <span class="badge bg-${roleBadge[usuario.rol] || 'secondary'}">${usuario.rol || 'cliente'}</span>
+                    <button onclick="cerrarSesion()" class="btn btn-sm btn-danger float-end">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    function mostrarSesionInactiva() {
+        const statusDiv = document.getElementById('sessionStatus');
+        if (statusDiv) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    <a href="#" onclick="abrirLogin()" class="alert-link">Iniciar Sesión</a> | 
+                    <a href="#" onclick="abrirRegistro()" class="alert-link">Registrarse</a>
+                </div>
+            `;
+        }
+    }
+
+    async function cerrarSesion() {
+        if (!confirm('¿Estás seguro de que deseas cerrar sesión?')) return;
+        
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+            localStorage.clear();
+            window.location.reload();
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function abrirLogin() {
+        // Abrir el modal de login de tu app
+        if (window.App) {
+            window.App.setState({ modal: 'login' });
+        }
+    }
+
+    function abrirRegistro() {
+        if (window.App) {
+            window.App.setState({ modal: 'register' });
+        }
+    }
+
+    // ============================================
+    // MANEJAR FORMULARIOS DE LOGIN Y REGISTRO
+    // (TU CÓDIGO ORIGINAL - SIN MODIFICAR)
+    // ============================================
     document.addEventListener('submit', async (e) => {
       const form = e.target;
       
-      // Selectores específicos por tipo/nombre para evitar desfasamientos
-      const inputEmail = form.querySelector('input[type="email"], input[name="email"], input[name="correo"]');
-      const inputPassword = form.querySelector('input[type="password"], input[name="password"], input[name="contra"]');
+      // Selectores flexibles
+      const inputEmail = form.querySelector('#login-user, #reg-email, input[type="email"], input[name="email"], input[name="correo"]');
+      const inputPassword = form.querySelector('#login-pass, #reg-password, input[type="password"], input[name="password"], input[name="contra"]');
+      const inputNombre = form.querySelector('#reg-fullname, input[name="nombre"], input[name="fullName"], input[name="nombreCompleto"]');
 
-      // 1. EVALUAR SI ES FORMULARIO DE REGISTRO
-      const esFormularioRegistro = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('crear') || 
-                                   form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]').length >= 3;
+      // ===== REGISTRO =====
+      const esRegistro = form.id === 'register-form' || 
+                         form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('crear') || 
+                         form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('registrar') ||
+                         Boolean(inputNombre);
 
-      if (esFormularioRegistro && inputEmail && inputPassword) {
-        // Verificar si existe campo de nombre
-        const inputNombre = form.querySelector('input[type="text"], input[name="nombre"], input[name="fullName"]');
-        
-        if (inputNombre) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
+      if (esRegistro && inputEmail && inputPassword && inputNombre) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
-          const nombreCompleto = inputNombre.value.trim();
-          const correo = inputEmail.value.trim();
-          const contra = inputPassword.value;
+        const nombreCompleto = inputNombre.value.trim();
+        const correo = inputEmail.value.trim();
+        const contra = inputPassword.value;
 
-          const partesNombre = nombreCompleto.split(' ');
-          const nombre = partesNombre[0] || 'Cliente';
-          const apellido = partesNombre.slice(1).join(' ') || 'Sin Apellido';
-
-          try {
-            const res = await fetch('/api/registro', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nombre, apellido, correo, contra })
-            });
-
-            const result = await res.json();
-
-            if (res.ok) {
-              alert('¡Cliente guardado correctamente en MySQL!');
-              window.location.reload();
-            } else {
-              alert('Error en MySQL: ' + (result.error || 'No se pudo guardar el registro'));
-            }
-          } catch (err) {
-            console.error('Error de conexión:', err);
-            alert('Error al conectar con la base de datos.');
-          }
+        if (!nombreCompleto || !correo || !contra) {
+          alert('Por favor completa todos los campos requeridos.');
           return;
         }
+
+        const partesNombre = nombreCompleto.split(' ');
+        const nombre = partesNombre[0] || 'Cliente';
+        const apellido = partesNombre.slice(1).join(' ') || 'Sin Apellido';
+
+        try {
+          const res = await fetch('/api/registro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, apellido, correo, contra })
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            alert('✅ ¡Usuario registrado exitosamente!');
+            if (window.App) {
+              window.App.setState({ modal: null });
+            }
+            form.reset();
+            setTimeout(() => {
+              if (window.App) {
+                window.App.setState({ modal: 'login' });
+              }
+            }, 500);
+          } else {
+            alert('❌ Error: ' + (result.error || 'No se pudo guardar el registro'));
+          }
+        } catch (err) {
+          console.error('Error de conexión:', err);
+          alert('❌ Error al conectar con la base de datos.');
+        }
+        return;
       }
 
-      // 2. EVALUAR SI ES FORMULARIO DE LOGIN
-      const esFormularioLogin = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('iniciar') ||
-                                (inputEmail && inputPassword && !form.querySelector('input[name="nombre"]'));
+      // ===== LOGIN =====
+      const esLogin = form.id === 'login-form' || 
+                      form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('iniciar') ||
+                      (inputEmail && inputPassword && !inputNombre);
 
-      if (esFormularioLogin && inputEmail && inputPassword) {
+      if (esLogin && inputEmail && inputPassword) {
         e.preventDefault();
         e.stopImmediatePropagation();
 
         const correo = inputEmail.value.trim();
         const contra = inputPassword.value;
+
+        if (!correo || !contra) {
+          const errEl = document.getElementById('login-error');
+          if (errEl) {
+            errEl.textContent = 'Ingresa tu correo y contraseña.';
+            errEl.style.display = 'block';
+          } else {
+            alert('Ingresa tu correo y contraseña.');
+          }
+          return;
+        }
 
         try {
           const res = await fetch('/api/login', {
@@ -87,29 +219,48 @@
 
           const result = await res.json();
 
-          if (res.ok) {
-            // Estructura requerida por la plantilla
+          if (res.ok && result.success) {
             const usuarioSesion = {
               id: result.cliente.id,
               fullName: `${result.cliente.nombre} ${result.cliente.apellido}`.trim(),
+              username: result.cliente.nombre,
               email: result.cliente.correo,
-              role: 'client',
-              createdAt: new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
+              role: result.cliente.rol || 'cliente'
             };
 
-            // Guardar sesión
+            localStorage.setItem('ps_session', JSON.stringify(usuarioSesion));
             localStorage.setItem('pixelstore_user', JSON.stringify(usuarioSesion));
             localStorage.setItem('currentUser', JSON.stringify(usuarioSesion));
             localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
 
-            alert('¡Bienvenido, ' + result.cliente.nombre + '!');
-            window.location.reload();
+            alert('✅ ¡Bienvenido, ' + result.cliente.nombre + '!');
+
+            if (window.App) {
+              window.App.setState({ modal: null });
+            }
+
+            // REDIRIGIR SEGÚN ROL
+            if (result.redirect) {
+              window.location.href = result.redirect;
+            } else if (result.cliente.rol === 'administrador') {
+              window.location.href = '/admin.html';
+            } else if (result.cliente.rol === 'vendedor') {
+              window.location.href = '/vendor.html';
+            } else {
+              window.location.reload();
+            }
           } else {
-            alert('Error de acceso: ' + (result.error || 'Credenciales inválidas'));
+            const errEl = document.getElementById('login-error');
+            if (errEl) {
+              errEl.textContent = result.error || 'Credenciales inválidas';
+              errEl.style.display = 'block';
+            } else {
+              alert('❌ Error: ' + (result.error || 'Credenciales inválidas'));
+            }
           }
         } catch (err) {
           console.error('Error de conexión:', err);
-          alert('Error al conectar con la base de datos.');
+          alert('❌ Error al conectar con el servidor.');
         }
       }
     }, true);
