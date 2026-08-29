@@ -18,6 +18,7 @@ function renderStars(rating, size) {
 
 // ─── HEADER ──────────────────────────────────────────────────
 function renderHeader({ currentUser, cart, page }) {
+  console.log('Renderizando header con usuario:', currentUser);
   const cartCount = cart.reduce((total, item) => total + item.qty, 0);
   const isAdmin = currentUser?.role === 'admin';
   const isVendor = currentUser?.role === 'vendor';
@@ -135,8 +136,6 @@ function renderFooter() {
 // ─── CART SIDEBAR ─────────────────────────────────────────────
 function renderCart(cart, open, paymentMethod = 'cash') {
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
-  // Cambia esta URL por tu archivo, por ejemplo: 'assets/mi-qr.png'.
-  // Es solo una imagen de muestra; PixelStore no genera ni procesa códigos QR reales.
   const QR_PAYMENT_IMAGE = 'https://placehold.co/280x280/111215/00e5ff?text=Tu+imagen+QR';
   const paymentOptions = [
     {
@@ -218,8 +217,9 @@ function renderCart(cart, open, paymentMethod = 'cash') {
   </aside>`;
 }
 
-// ─── LOGIN MODAL ───────────────────────────────────────────────
-// Modal de Inicio de Sesión (Sin cuentas demo y con submit corregido)
+// ============================================
+// ✅ LOGIN MODAL CORREGIDO (CON IDS CORRECTOS)
+// ============================================
 function renderLoginModal() {
   return `
   <div class="modal-overlay" id="login-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;">
@@ -230,13 +230,13 @@ function renderLoginModal() {
         <button type="button" id="btn-close-login" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">&times;</button>
       </div>
 
-      <!-- El ID 'form-login' debe coincidir con el listener en tu JS de eventos -->
-      <form id="form-login">
+      <!-- ✅ FORMULARIO CON IDS CORRECTOS -->
+      <form id="login-form">
         <div style="margin-bottom:16px;">
           <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Correo electrónico o Usuario</label>
           <input 
             type="text" 
-            id="login-username" 
+            id="login-user" 
             required 
             placeholder="tu@email.com"
             style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;"
@@ -247,18 +247,18 @@ function renderLoginModal() {
           <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Contraseña</label>
           <input 
             type="password" 
-            id="login-password" 
+            id="login-pass" 
             required 
             placeholder="••••••••"
             style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:#111;color:#fff;box-sizing:border-box;"
           />
         </div>
 
-        <!-- Botón explícito tipo submit -->
+        <div id="login-error" style="display:none;margin-bottom:14px;padding:8px 12px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:13px;"></div>
+
         <button 
           type="submit" 
-          id="btn-submit-login" 
-          style="width:100%;padding:12px;border-radius:8px;background:var(--accent,#6c5ce7);border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:opacity 0.2s;"
+          style="width:100%;padding:12px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:opacity 0.2s;"
         >
           Entrar a PixelStore
         </button>
@@ -267,74 +267,6 @@ function renderLoginModal() {
       <div style="margin-top:20px;text-align:center;font-size:13px;color:var(--muted);">
         ¿No tienes cuenta? <a href="#" id="link-open-register" style="color:var(--accent);text-decoration:none;font-weight:600;">Regístrate aquí</a>
       </div>
-    </div>
-  </div>`;
-}
-
-// ─── REGISTER MODAL ────────────────────────────────────────────
-function renderRegisterModal() {
-  return `
-  <div id="modal-backdrop" class="modal-backdrop" style="z-index:120;">
-    <div class="modal-box" style="max-width:460px;" role="dialog" aria-modal="true" aria-labelledby="register-title">
-      <div style="position:absolute;top:0;left:10%;right:10%;height:2px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div>
-      <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
-      <h2 id="register-title" style="margin:0 0 4px;font-size:1.4rem;font-weight:800;background:linear-gradient(90deg,var(--accent2),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;">Crear cuenta</h2>
-      <p style="margin:0 0 22px;color:var(--muted);font-size:13.5px;">Regístrate para acceder a toda la tienda.</p>
-
-      <div id="reg-error" style="display:none;margin-bottom:14px;padding:10px 12px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:13px;border-left:3px solid rgba(255,0,47,0.5);"></div>
-
-      <form id="register-form" autocomplete="off">
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-fullname">Nombre Completo</label>
-          <input id="reg-fullname" type="text" class="field-input" placeholder="Tu nombre y apellido" />
-        </div>
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-phone">Teléfono</label>
-          <input id="reg-phone" type="tel" class="field-input" placeholder="Ej: 9900-1234" />
-        </div>
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-email">Cuenta Gmail</label>
-          <input id="reg-email" type="email" class="field-input" placeholder="tucuenta@gmail.com" />
-        </div>
-        <div style="margin-bottom:14px;">
-          <label class="field-label" for="reg-password">Contraseña</label>
-          <div style="display:flex;gap:8px;">
-            <input id="reg-password" type="password" class="field-input" placeholder="Mínimo 6 caracteres" style="flex:1;" />
-            <button type="button" data-toggle-pass="reg-password" style="width:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.02));border:1px solid var(--border-subtle,rgba(255,255,255,0.09));border-radius:8px;cursor:pointer;padding:0;transition:border-color 160ms;"
-              onmouseenter="this.style.borderColor='rgba(0,229,255,0.35)'"
-              onmouseleave="this.style.borderColor='rgba(255,255,255,0.09)'">
-              <svg class="eye-icon" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" width="22" height="14" style="display:block;"><path d="M18 60 C38 29 66 14 100 14 C134 14 162 29 182 60 C162 91 134 106 100 106 C66 106 38 91 18 60 Z" fill="#9aa1a6"/><path d="M30 60 C48 37 71 26 100 26 C129 26 152 37 170 60 C152 83 129 94 100 94 C71 94 48 83 30 60 Z" fill="#1a1b1f"/><circle cx="100" cy="60" r="30" fill="#9aa1a6"/><circle cx="100" cy="60" r="16" fill="#1a1b1f"/></svg>
-            </button>
-          </div>
-          <div class="strength-bar">
-            <div class="strength-segment"></div>
-            <div class="strength-segment"></div>
-            <div class="strength-segment"></div>
-            <div class="strength-segment"></div>
-            <span id="strength-label" style="font-size:10px;color:var(--muted);margin-left:4px;flex-shrink:0;"></span>
-          </div>
-        </div>
-        <div style="margin-bottom:20px;">
-          <label class="field-label" for="reg-confirm">Repetir Contraseña</label>
-          <div style="display:flex;gap:8px;">
-            <input id="reg-confirm" type="password" class="field-input" placeholder="Repite tu contraseña" style="flex:1;" />
-            <button type="button" data-toggle-pass="reg-confirm" style="width:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.02));border:1px solid var(--border-subtle,rgba(255,255,255,0.09));border-radius:8px;cursor:pointer;padding:0;transition:border-color 160ms;"
-              onmouseenter="this.style.borderColor='rgba(0,229,255,0.35)'"
-              onmouseleave="this.style.borderColor='rgba(255,255,255,0.09)'">
-              <svg class="eye-icon" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" width="22" height="14" style="display:block;"><path d="M18 60 C38 29 66 14 100 14 C134 14 162 29 182 60 C162 91 134 106 100 106 C66 106 38 91 18 60 Z" fill="#9aa1a6"/><path d="M30 60 C48 37 71 26 100 26 C129 26 152 37 170 60 C152 83 129 94 100 94 C71 94 48 83 30 60 Z" fill="#1a1b1f"/><circle cx="100" cy="60" r="30" fill="#9aa1a6"/><circle cx="100" cy="60" r="16" fill="#1a1b1f"/></svg>
-            </button>
-          </div>
-          <p id="confirm-hint" style="margin:5px 0 0;font-size:11.5px;"></p>
-        </div>
-        <button type="submit" style="width:100%;padding:12px;background:linear-gradient(90deg,var(--accent2),var(--accent));border:none;border-radius:9px;color:#070607;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;letter-spacing:0.3px;transition:filter 160ms ease,transform 160ms ease;"
-          onmouseenter="this.style.filter='brightness(1.08)';this.style.transform='translateY(-2px)'"
-          onmouseleave="this.style.filter='none';this.style.transform='none'">Crear mi cuenta</button>
-      </form>
-
-      <p style="margin:16px 0 0;text-align:center;font-size:13px;color:var(--muted);">
-        ¿Ya tienes cuenta?&nbsp;
-        <button id="btn-switch-login" style="background:none;border:none;color:var(--accent);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:0;">Iniciar sesión</button>
-      </p>
     </div>
   </div>`;
 }
