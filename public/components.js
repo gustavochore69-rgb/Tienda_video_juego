@@ -20,10 +20,12 @@ function renderStars(rating, size) {
 function renderHeader({ currentUser, cart, page }) {
   console.log('Renderizando header con usuario:', currentUser);
   const cartCount = cart.reduce((total, item) => total + item.qty, 0);
-  const isAdmin = currentUser?.role === 'admin';
-  const isVendor = currentUser?.role === 'vendor';
+  
+  // ===== CORREGIDO: Soporta ambos nombres de rol =====
+  const isAdmin = currentUser?.role === 'administrador' || currentUser?.role === 'admin';
+  const isVendor = currentUser?.role === 'vendedor' || currentUser?.role === 'vendor';
   const isLight = document.body.classList.contains('light');
-  const roleColor = currentUser?.role === 'admin' ? 'var(--accent)' : currentUser?.role === 'vendor' ? 'var(--accent2)' : 'var(--muted)';
+  const roleColor = (currentUser?.role === 'administrador' || currentUser?.role === 'admin') ? 'var(--accent)' : (currentUser?.role === 'vendedor' || currentUser?.role === 'vendor') ? 'var(--accent2)' : 'var(--muted)';
 
   function navBtn(label, target) {
     const active = page === target;
@@ -59,7 +61,7 @@ function renderHeader({ currentUser, cart, page }) {
         ${navBtn('Tienda', 'store')}
         ${navBtn('Consolas', 'consolas')}
         ${currentUser ? navBtn('Perfil', 'profile') : ''}
-        ${isAdmin ? navBtn('Admin', 'admin') : ''}
+        ${isAdmin ? `<a href="/admin.html" style="text-decoration:none;color:${page === 'admin' ? 'var(--text-strong,#fff)' : 'var(--muted)'};font-weight:${page === 'admin' ? 700 : 400};font-size:13.5px;cursor:pointer;padding:4px 2px;border-bottom:${page === 'admin' ? '2px solid var(--accent)' : '2px solid transparent'};transition:color 160ms ease,border-color 160ms ease;font-family:inherit;">Admin</a>` : ''}
         ${isVendor ? navBtn('Mi Panel', 'vendor') : ''}
       </nav>
 
@@ -68,7 +70,7 @@ function renderHeader({ currentUser, cart, page }) {
         <button id="btn-theme-toggle" class="theme-toggle-btn" type="button" aria-label="Cambiar a modo ${isLight ? 'oscuro' : 'claro'}">
           ${isLight ? 'Oscuro' : 'Claro'}
         </button>
-        ${currentUser?.role === 'client' ? `
+        ${currentUser?.role === 'client' || currentUser?.role === 'cliente' ? `
           <button data-request-vendor class="btn-glow" type="button" style="padding:7px 12px;background:var(--surface);border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--text-strong,#eef2f4);font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;">
             Ser vendedor
           </button>
@@ -76,7 +78,7 @@ function renderHeader({ currentUser, cart, page }) {
         ${currentUser ? `
           <div style="display:flex;flex-direction:column;align-items:flex-end;margin-right:4px;">
             <span style="font-size:13px;font-weight:700;color:var(--text-strong,#fff);">${currentUser.fullName.split(' ')[0]}</span>
-            <span style="font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${roleColor};">${ROLE_LABELS[currentUser.role]}</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${roleColor};">${ROLE_LABELS[currentUser.role] || currentUser.role}</span>
           </div>
           <button id="btn-logout" style="padding:7px 14px;background:transparent;border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;transition:color 160ms,border-color 160ms;"
             onmouseenter="this.style.color='#fff';this.style.borderColor='rgba(255,0,47,0.4)'"
@@ -582,9 +584,9 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px;">
       ${[
         { label: 'Total usuarios', value: users.length, color: 'var(--accent2)' },
-        { label: 'Admins', value: users.filter(u => u.role === 'admin').length, color: 'var(--accent)' },
-        { label: 'Vendedores', value: users.filter(u => u.role === 'vendor').length, color: '#f5a623' },
-        { label: 'Clientes', value: users.filter(u => u.role === 'client').length, color: '#a4d96f' },
+        { label: 'Admins', value: users.filter(u => u.role === 'administrador').length, color: 'var(--accent)' },
+        { label: 'Vendedores', value: users.filter(u => u.role === 'vendedor').length, color: '#f5a623' },
+        { label: 'Clientes', value: users.filter(u => u.role === 'cliente').length, color: '#a4d96f' },
         { label: 'Baneados', value: users.filter(u => u.banned).length, color: '#ff6b6b' },
         { label: 'Pedidos', value: orders.length, color: '#f5a623' }
       ].map(s => `
@@ -623,11 +625,11 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
                   <td style="padding:13px 16px;font-size:13px;color:var(--muted);">${u.email}</td>
                   <td style="padding:13px 16px;font-size:13px;color:var(--muted);">${u.phone}</td>
                   <td style="padding:13px 16px;">
-                    <select data-change-role="${u.id}" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:${u.role==='admin'?'var(--accent)':u.role==='vendor'?'var(--accent2)':'#a4d96f'};font-size:11px;font-weight:700;padding:4px 8px;cursor:pointer;font-family:inherit;"
+                    <select data-change-role="${u.id}" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:${u.role==='administrador'?'var(--accent)':u.role==='vendedor'?'var(--accent2)':'#a4d96f'};font-size:11px;font-weight:700;padding:4px 8px;cursor:pointer;font-family:inherit;"
                       ${u.id === currentUser?.id ? 'disabled' : ''}>
-                      <option value="client" ${u.role==='client'?'selected':''}>Cliente</option>
-                      <option value="vendor" ${u.role==='vendor'?'selected':''}>Vendedor</option>
-                      <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                      <option value="cliente" ${u.role==='cliente'?'selected':''}>Cliente</option>
+                      <option value="vendedor" ${u.role==='vendedor'?'selected':''}>Vendedor</option>
+                      <option value="administrador" ${u.role==='administrador'?'selected':''}>Admin</option>
                     </select>
                   </td>
                   <td style="padding:13px 16px;">
@@ -728,7 +730,6 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
     </div>
   </div>`;
 }
-
 // ─── VENDOR PANEL ─────────────────────────────────────────────
 function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] }) {
   const liveSales = orders.flatMap(order => order.items.filter(item => item.vendorId === currentUser?.id).map(item => ({ id: order.id, game: item.title, buyer: order.buyerId, amount: item.unitPrice * item.qty, date: order.createdAt.slice(0, 10), status: order.status === 'delivered' ? 'completado' : order.status })));
@@ -852,10 +853,9 @@ function renderProfile({ currentUser, favorites, orders, notifications, sellerRe
               Envía una solicitud con los datos del producto que quieres publicar.
             </p>
           </div>
-          ${
-            sellerRequests.some(r => r.userId === currentUser.id && r.status === 'pendiente')
-              ? `<span style="padding:8px 12px;border-radius:8px;background:rgba(245,166,35,0.1);color:#f5a623;font-size:12px;font-weight:700;">Solicitud pendiente</span>`
-              : `<button data-request-vendor class="btn-glow" type="button" style="padding:9px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Quiero ser vendedor</button>`
+          ${sellerRequests.some(r => r.userId === currentUser.id && r.status === 'pendiente')
+            ? `<span style="padding:8px 12px;border-radius:8px;background:rgba(245,166,35,0.1);color:#f5a623;font-size:12px;font-weight:700;">Solicitud pendiente</span>`
+            : `<button data-request-vendor class="btn-glow" type="button" style="padding:9px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#070607;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Quiero ser vendedor</button>`
           }
         </div>
       </section>
