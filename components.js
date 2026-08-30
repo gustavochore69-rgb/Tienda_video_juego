@@ -537,96 +537,253 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
   const category = isGame ? product.genreLabel : ('Consola · ' + product.brand);
   const rating = avgRating(reviews);
   const favorite = currentUser && (favorites[currentUser.id] || []).includes(`${type}-${product.id}`);
-  const related = (isGame ? GAMES.filter(item => item.id !== product.id && item.genres.some(genre => product.genres?.includes(genre))) : CONSOLAS.filter(item => item.id !== product.id && item.brand === product.brand)).slice(0, 3);
+  const related = (isGame
+    ? GAMES.filter(item => item.id !== product.id && item.genres.some(genre => product.genres?.includes(genre)))
+    : CONSOLAS.filter(item => item.id !== product.id && item.brand === product.brand)
+  ).slice(0, 3);
+
+  const discountPercent = product.originalPrice
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : (product.discount || 0);
+  const savings = product.originalPrice ? (product.originalPrice - product.price).toFixed(2) : 0;
+
+  function getInitials(nameStr) {
+    if (!nameStr) return 'G';
+    const parts = nameStr.trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].slice(0, 2).toUpperCase();
+  }
 
   return `
   <div id="modal-backdrop" class="modal-backdrop" style="z-index:130;">
-    <div class="modal-box" style="max-width:640px;" role="dialog" aria-modal="true" aria-labelledby="product-title">
-      <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">×</button>
+    <div class="modal-box product-detail-modal" role="dialog" aria-modal="true" aria-labelledby="product-title">
+      
+      <!-- Fondo dinámico con glow ambiental -->
+      <div class="modal-ambient-glow" style="background-image: url('${product.image}');"></div>
 
-      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
-        <img src="${product.image}" alt="${name}" style="width:100%;max-width:220px;height:150px;object-fit:cover;border-radius:12px;flex-shrink:0;" onerror="this.src='https://via.placeholder.com/220x150/111215/444?text=${isGame ? 'Game' : 'Consola'}'">
-        <div style="flex:1;min-width:200px;">
-          <span class="eyebrow">${category}</span>
-          <h2 id="product-title" style="margin:0 0 8px;font-size:1.4rem;font-weight:800;color:var(--text-strong,#fff);">${name}</h2>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            ${renderStars(rating)}
-            <span style="font-size:12.5px;color:var(--muted);">${rating ? rating.toFixed(1) : 'Sin calificación'} ${reviews.length ? `(${reviews.length} reseña${reviews.length === 1 ? '' : 's'})` : ''}</span>
-          </div>
-          <div style="margin-bottom:14px;">
-            ${product.originalPrice ? `<span style="font-size:13px;color:var(--muted);text-decoration:line-through;margin-right:8px;">$${product.originalPrice.toFixed(2)}</span>` : ''}
-            <span style="font-size:22px;font-weight:800;color:#a4d96f;">$${product.price.toFixed(2)}</span>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button data-add-cart="${product.id}" data-type="${type}" style="padding:10px 20px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#ffffff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:filter 160ms,transform 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
-            onmouseenter="this.style.filter='brightness(1.1)';this.style.transform='translateY(-1px)'"
-            onmouseleave="this.style.filter='none';this.style.transform='none'">+ Añadir al carrito</button>
-          <button type="button" data-favorite="${product.id}" data-type="${type}" class="favorite-button ${favorite ? 'is-active' : ''}" aria-label="${favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">${favorite ? '♥ Guardado' : '♡ Favorito'}</button>
-          </div>
-        </div>
-      </div>
+      <!-- Botón Cerrar -->
+      <button id="btn-close-modal" class="modal-btn-close" aria-label="Cerrar modal">✕</button>
 
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px;padding:14px 16px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:10px;">
-        ${isGame ? `
-        <div>
-          <div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Plataforma</div>
-          <div style="font-size:13px;color:var(--text-strong,#eef2f4);font-weight:700;">${product.platform || 'N/D'}</div>
-        </div>` : `
-        <div>
-          <div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Marca</div>
-          <div style="font-size:13px;color:var(--text-strong,#eef2f4);font-weight:700;">${product.brand}</div>
-        </div>`}
-        <div>
-          <div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:3px;">Desarrollador</div>
-          <div style="font-size:13px;color:var(--text-strong,#eef2f4);font-weight:700;">${product.developer || 'N/D'}</div>
-        </div>
-      </div>
-
-      <div style="margin-bottom:24px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:var(--text-sub,#cfd6db);margin-bottom:8px;">Descripción</div>
-        <p style="margin:0;font-size:13.5px;line-height:1.6;color:var(--muted);">${product.description || 'Sin descripción disponible.'}</p>
-      </div>
-
-      ${related.length ? `<div style="margin-bottom:24px;"><div style="font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text-sub);margin-bottom:9px;">También te puede gustar</div><div class="related-products">${related.map(item => `<button type="button" data-view-product="${type}-${item.id}"><img src="${item.image}" alt=""><span>${item.title || item.name}</span><strong>$${item.price.toFixed(2)}</strong></button>`).join('')}</div></div>` : ''}
-
-      <!-- Reseñas -->
-      <div style="border-top:1px solid var(--border-subtle,rgba(255,255,255,0.07));padding-top:18px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:var(--text-sub,#cfd6db);margin-bottom:12px;">Reseñas ${reviews.length ? `(${reviews.length})` : ''}</div>
-
-        <div style="max-height:220px;overflow-y:auto;margin-bottom:18px;display:flex;flex-direction:column;gap:12px;padding-right:4px;">
-          ${reviews.length === 0 ? `<p style="font-size:13px;color:var(--muted);">Aún no hay reseñas. ¡Sé el primero en opinar!</p>` : reviews.slice().reverse().map(r => `
-            <div style="padding:10px 12px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:9px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px;">
-                <span style="font-size:12.5px;font-weight:700;color:var(--text-strong,#eef2f4);">${r.user}</span>
-                <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${r.date}</span>
-              </div>
-              <div style="margin-bottom:5px;">${renderStars(r.rating, '12px')}</div>
-              <p style="margin:0;font-size:12.5px;color:var(--muted);line-height:1.5;">${r.comment}</p>
+      <div class="modal-inner-content">
+        <!-- Hero: Portada y Bloque de Compra -->
+        <div class="pdetail-hero">
+          
+          <!-- Columna Izquierda: Portada + Detalles Rápidos -->
+          <div class="pdetail-media-column">
+            <!-- Portada con Badges -->
+            <div class="pdetail-cover-wrapper">
+              <img src="${product.image}" alt="${name}" class="pdetail-cover-img" onerror="this.src='https://via.placeholder.com/460x215/111215/444?text=${isGame ? 'Game' : 'Consola'}'">
+              ${discountPercent > 0 ? `<div class="pdetail-badge-discount">🔥 -${discountPercent}%</div>` : ''}
+              <div class="pdetail-badge-instant">⚡ Entrega Inmediata</div>
             </div>
-          `).join('')}
-        </div>
 
-        ${currentUser ? `
-          <form id="review-form">
-            <div id="review-error" style="display:none;margin-bottom:10px;padding:8px 10px;background:rgba(255,20,20,0.1);color:#ffb7b7;border-radius:8px;font-size:12.5px;"></div>
-            <div style="margin-bottom:10px;">
-              <label class="field-label">Tu calificación</label>
-              <div style="display:flex;gap:4px;align-items:center;">
-                ${[1, 2, 3, 4, 5].map(i => `<span data-star-select="${i}" style="font-size:22px;cursor:pointer;color:var(--muted);user-select:none;">☆</span>`).join('')}
-                <input type="hidden" id="review-rating-input" value="0" />
+            <!-- Mini Ficha de Verificación & Soporte (llena el espacio) -->
+            <div class="pdetail-quick-box">
+              <div class="pdetail-quick-item">
+                <span class="pdetail-quick-icon">🌐</span>
+                <div class="pdetail-quick-text">
+                  <span class="pdetail-quick-label">Idioma y Región</span>
+                  <span class="pdetail-quick-val">Español / Multilenguaje · Global</span>
+                </div>
+              </div>
+              <div class="pdetail-quick-item">
+                <span class="pdetail-quick-icon">👥</span>
+                <div class="pdetail-quick-text">
+                  <span class="pdetail-quick-label">Modalidad</span>
+                  <span class="pdetail-quick-val">${isGame ? '1 Jugador · Coop Online' : 'Hardware Original'}</span>
+                </div>
+              </div>
+              <div class="pdetail-quick-item">
+                <span class="pdetail-quick-icon">🏪</span>
+                <div class="pdetail-quick-text">
+                  <span class="pdetail-quick-label">Vendido por</span>
+                  <span class="pdetail-quick-val">PixelStore Oficial <span style="color:#f5a623;font-size:11px;font-weight:800;">★ 4.9</span></span>
+                </div>
               </div>
             </div>
-            <div style="margin-bottom:12px;">
-              <label class="field-label" for="review-comment">Tu reseña</label>
-              <textarea id="review-comment" class="field-input" rows="3" placeholder="Cuéntanos qué te pareció..." style="resize:vertical;font-family:inherit;"></textarea>
+
+            <!-- Tags rápidos de compatibilidad -->
+            <div class="pdetail-feature-pills">
+              <span class="pdetail-feature-pill">🕹️ Mando compatible</span>
+              <span class="pdetail-feature-pill">☁️ Cloud Save</span>
             </div>
-            <button type="submit" style="padding:9px 18px;background:linear-gradient(90deg,var(--accent2),var(--accent));border:none;border-radius:8px;color:#ffffff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;text-shadow:0 1px 2px rgba(0,0,0,0.3);">Publicar reseña</button>
-          </form>
-        ` : `
-          <p style="font-size:13px;color:var(--muted);">
-            <button id="btn-login-from-review" style="background:none;border:none;color:var(--accent2);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:0;">Inicia sesión</button> para dejar tu reseña.
-          </p>
-        `}
+          </div>
+
+          <!-- Info y Acciones -->
+          <div class="pdetail-info">
+            <div class="pdetail-tag-row">
+              <span class="pdetail-chip">🏷️ ${category}</span>
+              <span class="pdetail-chip-stock"><span class="pdetail-stock-dot"></span> En Stock</span>
+            </div>
+
+            <h2 id="product-title" class="pdetail-title">${name}</h2>
+
+            <!-- Rating bar -->
+            <div class="pdetail-rating-row">
+              ${renderStars(rating, '15px')}
+              <span class="pdetail-score-pill">${rating ? rating.toFixed(1) : 'Nuevo'}</span>
+              <span class="pdetail-review-meta">${reviews.length ? `(${reviews.length} reseña${reviews.length === 1 ? '' : 's'})` : 'Sin reseñas'}</span>
+            </div>
+
+            <!-- Price Box -->
+            <div class="pdetail-price-box">
+              <span class="pdetail-price-current">$${product.price.toFixed(2)}</span>
+              ${product.originalPrice ? `<span class="pdetail-price-old">$${product.originalPrice.toFixed(2)}</span>` : ''}
+              ${savings > 0 ? `<span class="pdetail-price-saving">Ahorras $${savings}</span>` : ''}
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="pdetail-actions">
+              <button data-add-cart="${product.id}" data-type="${type}" class="pdetail-btn-cart">
+                <span>🛒</span> Añadir al carrito
+              </button>
+              <button data-buy-now="${product.id}" data-type="${type}" class="pdetail-btn-buynow">
+                <span>⚡</span> Comprar ya
+              </button>
+              <button type="button" data-favorite="${product.id}" data-type="${type}" class="pdetail-btn-fav ${favorite ? 'is-active' : ''}" aria-label="${favorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
+                ${favorite ? '♥ Guardado' : '♡ Favorito'}
+              </button>
+            </div>
+
+            <!-- Micro Garantías -->
+            <div class="pdetail-trust-bar">
+              <span>🛡️ Garantía PixelStore</span>
+              <span>⚡ Activación instantánea</span>
+              <span>🔒 Pago 100% seguro</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ficha Técnica con Iconos -->
+        <div class="pdetail-specs-grid">
+          <div class="pdetail-spec-card">
+            <div class="pdetail-spec-icon">🎮</div>
+            <div>
+              <div class="pdetail-spec-label">${isGame ? 'Plataforma' : 'Marca'}</div>
+              <div class="pdetail-spec-val">${isGame ? (product.platform || 'Multiplataforma') : product.brand}</div>
+            </div>
+          </div>
+          <div class="pdetail-spec-card">
+            <div class="pdetail-spec-icon">🏢</div>
+            <div>
+              <div class="pdetail-spec-label">Desarrollador</div>
+              <div class="pdetail-spec-val">${product.developer || 'Estudio Oficial'}</div>
+            </div>
+          </div>
+          <div class="pdetail-spec-card">
+            <div class="pdetail-spec-icon">💎</div>
+            <div>
+              <div class="pdetail-spec-label">Formato</div>
+              <div class="pdetail-spec-val">${isGame ? 'Clave Digital Global' : 'Consola Original'}</div>
+            </div>
+          </div>
+          <div class="pdetail-spec-card">
+            <div class="pdetail-spec-icon">🎯</div>
+            <div>
+              <div class="pdetail-spec-label">Categoría</div>
+              <div class="pdetail-spec-val">${category}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descripción y Highlights -->
+        <div class="pdetail-desc-box">
+          <div class="pdetail-section-title">📖 Descripción del producto</div>
+          <p class="pdetail-desc-text">${product.description || 'Sin descripción disponible para este producto.'}</p>
+          <div class="pdetail-desc-perks">
+            <div class="pdetail-desc-perk-item"><span>✓</span> Código verificable al instante</div>
+            <div class="pdetail-desc-perk-item"><span>✓</span> Descarga y juego en tu cuenta oficial</div>
+            <div class="pdetail-desc-perk-item"><span>✓</span> Soporte técnico garantizado</div>
+          </div>
+        </div>
+
+        <!-- También te puede gustar -->
+        ${related.length ? `
+        <div style="margin-bottom:22px;">
+          <div class="pdetail-section-title">✨ También te puede gustar</div>
+          <div class="pdetail-related-grid">
+            ${related.map(item => `
+              <button type="button" class="pdetail-rel-card" data-view-product="${type}-${item.id}">
+                <img src="${item.image}" alt="" class="pdetail-rel-img" onerror="this.src='https://via.placeholder.com/160x80/111215/444?text=Game'">
+                <div class="pdetail-rel-body">
+                  <span class="pdetail-rel-name">${item.title || item.name}</span>
+                  <span class="pdetail-rel-price">$${item.price.toFixed(2)}</span>
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        </div>` : ''}
+
+        <!-- Reseñas de la comunidad -->
+        <div class="pdetail-reviews-container">
+          <div class="pdetail-reviews-header">
+            <div class="pdetail-section-title" style="margin-bottom:0;">⭐ Opiniones de la comunidad ${reviews.length ? `(${reviews.length})` : ''}</div>
+          </div>
+
+          ${reviews.length ? `
+            <div class="pdetail-score-box">
+              <div class="pdetail-score-big">${rating.toFixed(1)}</div>
+              <div>
+                <div>${renderStars(rating, '16px')}</div>
+                <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">Basado en ${reviews.length} valoración${reviews.length === 1 ? '' : 'es'} de usuarios reales</div>
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="pdetail-reviews-list">
+            ${reviews.length === 0 ? `
+              <div style="padding:16px;text-align:center;background:rgba(255,255,255,0.02);border-radius:10px;color:var(--muted);font-size:13px;">
+                🎮 Aún no hay opiniones para este producto. ¡Sé el primero en calificarlo!
+              </div>
+            ` : reviews.slice().reverse().map(r => `
+              <div class="pdetail-review-card">
+                <div class="pdetail-review-top">
+                  <div class="pdetail-user-badge">
+                    <div class="pdetail-user-avatar">${getInitials(r.user)}</div>
+                    <div>
+                      <div style="display:flex;align-items:center;gap:6px;">
+                        <span class="pdetail-user-name">${r.user}</span>
+                        <span class="pdetail-verified-tag">✓ Verificado</span>
+                      </div>
+                    </div>
+                  </div>
+                  <span class="pdetail-review-date">${r.date}</span>
+                </div>
+                <div style="margin-bottom:6px;">${renderStars(r.rating, '13px')}</div>
+                <p class="pdetail-review-text">"${r.comment}"</p>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Formulario o Invitación a Login -->
+          ${currentUser ? `
+            <form id="review-form" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;">
+              <div style="font-size:12.5px;font-weight:700;color:var(--text-strong,#fff);margin-bottom:8px;">Deja tu opinión como <span style="color:var(--accent2);">${currentUser.fullName || currentUser.username}</span></div>
+              <div id="review-error" style="display:none;margin-bottom:10px;padding:8px 10px;background:rgba(255,20,20,0.12);color:#ffb7b7;border-radius:8px;font-size:12px;border:1px solid rgba(255,20,20,0.3);"></div>
+              <div style="margin-bottom:10px;">
+                <label class="field-label">Tu Calificación:</label>
+                <div class="pdetail-star-picker">
+                  ${[1, 2, 3, 4, 5].map(i => `<span data-star-select="${i}" title="${i} estrellas">☆</span>`).join('')}
+                  <input type="hidden" id="review-rating-input" value="0" />
+                </div>
+              </div>
+              <div style="margin-bottom:12px;">
+                <label class="field-label" for="review-comment">Tu Comentario:</label>
+                <textarea id="review-comment" class="field-input" rows="3" placeholder="¿Qué te pareció el juego, rendimiento, historia...?" style="resize:vertical;font-family:inherit;"></textarea>
+              </div>
+              <button type="submit" class="pdetail-login-btn" style="padding:10px 22px;">Publicar Reseña</button>
+            </form>
+          ` : `
+            <div class="pdetail-login-prompt">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text-strong,#fff);">¿Has probado este título?</div>
+                <div style="font-size:12px;color:var(--muted);">Inicia sesión para compartir tu opinión con la comunidad gamer.</div>
+              </div>
+              <button id="btn-login-from-review" class="pdetail-login-btn">Iniciar Sesión</button>
+            </div>
+          `}
+        </div>
+
       </div>
     </div>
   </div>`;

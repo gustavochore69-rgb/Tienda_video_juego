@@ -573,6 +573,21 @@ const App = {
         if (item) this.addToCart({ ...item, title: item.title || item.name, type, stock: this.getStock(id, type) });
       });
     });
+
+    // Comprar ya (Direct checkout)
+    document.querySelectorAll('[data-buy-now]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = +btn.dataset.buyNow;
+        const type = btn.dataset.type || 'game';
+        const item = type === 'game'
+          ? GAMES.find(g => g.id === id)
+          : CONSOLAS.find(c => c.id === id);
+        if (item) {
+          this.addToCart({ ...item, title: item.title || item.name, type, stock: this.getStock(id, type) });
+          this.setState({ modal: null, cartOpen: true });
+        }
+      });
+    });
     document.getElementById('catalog-sort')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, sort: event.target.value } }));
     document.getElementById('catalog-price')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, price: event.target.value } }));
     document.getElementById('catalog-deals')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, dealsOnly: event.target.checked } }));
@@ -583,7 +598,7 @@ const App = {
     // Ver detalle de producto (click en la tarjeta, evitando el botón de carrito)
     document.querySelectorAll('[data-view-product]').forEach(card => {
       card.addEventListener('click', e => {
-        if (e.target.closest('[data-add-cart]')) return;
+        if (e.target.closest('[data-add-cart]') || e.target.closest('[data-buy-now]')) return;
         const [type, idStr] = card.dataset.viewProduct.split('-');
         this.openProduct(+idStr, type);
       });
@@ -599,6 +614,7 @@ const App = {
           const filled = +s.dataset.starSelect <= val;
           s.textContent = filled ? '★' : '☆';
           s.style.color = filled ? '#f5a623' : 'var(--muted)';
+          s.style.textShadow = filled ? '0 0 12px rgba(245, 166, 35, 0.7)' : 'none';
         });
       });
     });
