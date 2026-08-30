@@ -35,6 +35,9 @@ const App = {
     vendorSales: [...VENDOR_SALES],
     selectedProduct: null, // { id, type }
     productTab: 'desc', // 'desc' | 'specs' | 'reviews'
+    pixelBotOpen: false,
+    pixelBotMessages: [],
+    pixelBotTyping: false,
     reviews: JSON.parse(localStorage.getItem('ps_reviews') || 'null') || JSON.parse(JSON.stringify(REVIEWS_SEED)),
     sellerRequests: JSON.parse(localStorage.getItem('ps_seller_requests') || '[]'),
   },
@@ -513,6 +516,89 @@ const App = {
     showToast(target.banned ? '✅ Usuario reactivado' : '🚫 Usuario baneado');
   },
 
+  // PixelBot (Asistente Gamer Virtual)
+  handlePixelBotMessage(userText) {
+    if (!userText || !userText.trim()) return;
+    const text = userText.trim();
+    const currentMsgs = this.state.pixelBotMessages || [];
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const updatedMsgs = [...currentMsgs, { sender: 'user', text, time }];
+    this.setState({ pixelBotMessages: updatedMsgs, pixelBotTyping: true });
+
+    setTimeout(() => {
+      const response = this.generateBotResponse(text);
+      this.setState({
+        pixelBotMessages: [...this.state.pixelBotMessages, { sender: 'bot', ...response, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }],
+        pixelBotTyping: false
+      });
+      setTimeout(() => {
+        const body = document.getElementById('pixelbot-messages-body');
+        if (body) body.scrollTop = body.scrollHeight;
+      }, 50);
+    }, 450);
+  },
+
+  generateBotResponse(query) {
+    const q = query.toLowerCase();
+
+    // 1. Ofertas / Descuentos / Precios bajos
+    if (q.includes('oferta') || q.includes('descuento') || q.includes('barato') || q.includes('menos de') || q.includes('20') || q.includes('30') || q.includes('15') || q.includes('ahorro')) {
+      const cheapGames = GAMES.filter(g => (g.discount && g.discount > 0) || g.price <= 25).slice(0, 3);
+      return {
+        text: '🔥 ¡Aquí tienes las mejores ofertas destacadas con entrega inmediata y hasta un 85% de descuento!',
+        products: cheapGames.map(g => ({ id: g.id, title: g.title, price: g.price, originalPrice: g.originalPrice, discount: g.discount, image: g.image, type: 'game' }))
+      };
+    }
+
+    // 2. Requisitos de PC / RAM
+    if (q.includes('requisito') || q.includes('ram') || q.includes('8gb') || q.includes('16gb') || q.includes('pc') || q.includes('grafica') || q.includes('correr') || q.includes('corre')) {
+      const lowReqGames = GAMES.filter(g => g.id === 2 || g.id === 4 || g.id === 10 || g.id === 12);
+      return {
+        text: '💻 Si buscas juegos súper optimizados que corran fluido con **8GB de RAM o tarjetas gráficas de gama media/baja**, te recomiendo estos títulos:',
+        products: lowReqGames.slice(0, 3).map(g => ({ id: g.id, title: g.title, price: g.price, image: g.image, type: 'game' }))
+      };
+    }
+
+    // 3. Géneros: RPG / Aventura / Acción
+    if (q.includes('rpg') || q.includes('aventura') || q.includes('accion') || q.includes('historia') || q.includes('mundo abierto')) {
+      const rpgs = GAMES.filter(g => g.genres.includes('rpg') || g.genres.includes('aventura')).slice(0, 3);
+      return {
+        text: '🗡️ ¡Excelente elección! Si buscas mundos abiertos gigantescos, narrativa profunda y combate épico, estos son los más aclamados:',
+        products: rpgs.map(g => ({ id: g.id, title: g.title, price: g.price, image: g.image, type: 'game' }))
+      };
+    }
+
+    // 4. Consolas y Hardware
+    if (q.includes('consola') || q.includes('ps5') || q.includes('playstation') || q.includes('xbox') || q.includes('switch') || q.includes('nintendo') || q.includes('hardware')) {
+      return {
+        text: '🕹️ Contamos con consolas oficiales con garantía PixelStore y entrega garantizada. Aquí tienes las más populares:',
+        products: CONSOLAS.slice(0, 3).map(c => ({ id: c.id, title: c.name, price: c.price, image: c.image, type: 'consola' }))
+      };
+    }
+
+    // 5. Claves digitales / Comprobantes / Pagos
+    if (q.includes('clave') || q.includes('canjear') || q.includes('ticket') || q.includes('pdf') || q.includes('comprobante') || q.includes('tarjeta') || q.includes('pagar') || q.includes('comprar')) {
+      return {
+        text: '🔑 **¿Cómo funciona la compra en PixelStore?**\n\n1. Elige tu juego o consola y agrégalo al carrito.\n2. Completa el pago con tarjeta (puedes usar la tarjeta de prueba con 1 clic).\n3. Recibirás tu **clave digital única** al instante y podrás descargar tu **Ticket/Factura PDF** oficial.'
+      };
+    }
+
+    // 6. Búsqueda por coincidencia de nombre
+    const matched = GAMES.filter(g => g.title.toLowerCase().includes(q) || g.description.toLowerCase().includes(q));
+    if (matched.length > 0) {
+      return {
+        text: `🎮 Encontré estos títulos relacionados con "${query}":`,
+        products: matched.slice(0, 3).map(g => ({ id: g.id, title: g.title, price: g.price, image: g.image, type: 'game' }))
+      };
+    }
+
+    // Respuesta amigable por defecto
+    return {
+      text: '🤖 ¡Te ayudo con gusto! Puedes preguntarme cosas como:\n\n• *"Juegos en oferta por menos de $20"*\n• *"Juegos que corran en 8GB de RAM"*\n• *"Recomiéndame los mejores RPGs"*\n• *"¿Cómo canjeo mi clave digital?"*\n\n¿Qué tipo de juego o consola te interesa hoy?'
+    };
+  },
+
   // Render principal
   render() {
     const { page, currentUser, modal, cart, cartOpen, paymentMethod, selectedProduct, favorites, orders, notifications } = this.state;
@@ -542,6 +628,7 @@ const App = {
       ${modal === 'order-success' ? renderOrderSuccessModal(this.state.modalOrder || orders[0]) : ''}
       ${modal === 'receipt' ? renderReceiptModal(this.state.modalOrder || orders[0], currentUser) : ''}
       ${renderCart(cart, cartOpen, paymentMethod)}
+      ${renderPixelBot(this.state)}
     `;
 
     this.bindEvents();
@@ -1076,6 +1163,50 @@ const App = {
     });
     document.querySelectorAll('[data-order-status]').forEach(sel => {
       sel.addEventListener('change', () => this.updateOrderStatus(sel.dataset.orderStatus, sel.value));
+    });
+
+    // PixelBot (Asistente Gamer Virtual)
+    document.getElementById('btn-pixelbot-toggle')?.addEventListener('click', () => {
+      const willOpen = !this.state.pixelBotOpen;
+      this.setState({ pixelBotOpen: willOpen });
+      if (willOpen) {
+        setTimeout(() => {
+          document.getElementById('pixelbot-input')?.focus();
+          const body = document.getElementById('pixelbot-messages-body');
+          if (body) body.scrollTop = body.scrollHeight;
+        }, 60);
+      }
+    });
+
+    document.getElementById('btn-pixelbot-close')?.addEventListener('click', () => {
+      this.setState({ pixelBotOpen: false });
+    });
+
+    document.getElementById('btn-pixelbot-reset')?.addEventListener('click', () => {
+      this.setState({ pixelBotMessages: [], pixelBotTyping: false });
+    });
+
+    document.querySelectorAll('[data-bot-prompt]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const promptText = chip.dataset.botPrompt;
+        this.handlePixelBotMessage(promptText);
+      });
+    });
+
+    document.getElementById('pixelbot-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const input = document.getElementById('pixelbot-input');
+      const val = input?.value?.trim();
+      if (!val) return;
+      input.value = '';
+      this.handlePixelBotMessage(val);
+    });
+
+    document.querySelectorAll('[data-bot-view-product]').forEach(card => {
+      card.addEventListener('click', () => {
+        const [type, idStr] = card.dataset.botViewProduct.split('-');
+        this.openProduct(+idStr, type);
+      });
     });
   },
 

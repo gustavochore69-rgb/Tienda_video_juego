@@ -2799,4 +2799,461 @@ body.light .search-result-item:hover {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   ASISTENTE GAMER VIRTUAL (PIXELBOT)
+   ═══════════════════════════════════════════════════════════════════ */
+.pixelbot-floating-trigger {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px 10px 12px;
+  background: linear-gradient(135deg, rgba(20, 24, 33, 0.95), rgba(10, 12, 16, 0.95));
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(0, 229, 255, 0.4);
+  border-radius: 50px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 229, 255, 0.25);
+  color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+body.light .pixelbot-floating-trigger {
+  background: #ffffff;
+  border-color: rgba(13, 148, 136, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 0 15px rgba(13, 148, 136, 0.2);
+  color: #0f172a;
+}
+
+.pixelbot-floating-trigger:hover {
+  transform: translateY(-4px) scale(1.03);
+  border-color: var(--accent2);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 229, 255, 0.45);
+}
+
+.pixelbot-avatar-badge {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.4);
+  flex-shrink: 0;
+}
+
+.pixelbot-online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #2ee59d;
+  border: 2px solid #0f1015;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #2ee59d;
+}
+
+.pixelbot-trigger-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.pixelbot-trigger-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-strong, #fff);
+  letter-spacing: 0.3px;
+}
+
+body.light .pixelbot-trigger-title {
+  color: #0f172a;
+}
+
+.pixelbot-trigger-subtitle {
+  font-size: 10.5px;
+  color: var(--accent2);
+  font-weight: 600;
+}
+
+/* Ventana de Chat de PixelBot */
+.pixelbot-window {
+  position: fixed;
+  bottom: 88px;
+  right: 24px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  max-height: calc(100vh - 110px);
+  background: rgba(15, 17, 23, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 229, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 125;
+  animation: botSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.light .pixelbot-window {
+  background: #ffffff;
+  border-color: rgba(13, 148, 136, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 0 25px rgba(13, 148, 136, 0.15);
+}
+
+@keyframes botSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pixelbot-header {
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+body.light .pixelbot-header {
+  background: #f8fafc;
+  border-bottom-color: #e2e8f0;
+}
+
+.pixelbot-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pixelbot-header-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-strong, #fff);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+body.light .pixelbot-header-title {
+  color: #0f172a;
+}
+
+.pixelbot-header-status {
+  font-size: 11px;
+  color: #2ee59d;
+  font-weight: 600;
+}
+
+.pixelbot-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pixelbot-btn-icon {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pixelbot-btn-icon:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-strong, #fff);
+}
+
+/* Cuerpo de Mensajes */
+.pixelbot-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pixelbot-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 86%;
+  animation: botFadeIn 0.2s ease;
+}
+
+@keyframes botFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pixelbot-msg.is-bot {
+  align-self: flex-start;
+}
+
+.pixelbot-msg.is-user {
+  align-self: flex-end;
+}
+
+.pixelbot-bubble {
+  padding: 11px 15px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.pixelbot-msg.is-bot .pixelbot-bubble {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text, #e2e8f0);
+  border-bottom-left-radius: 4px;
+}
+
+body.light .pixelbot-msg.is-bot .pixelbot-bubble {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.pixelbot-msg.is-user .pixelbot-bubble {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.3);
+  font-weight: 500;
+}
+
+.pixelbot-time {
+  font-size: 9.5px;
+  color: var(--muted);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.pixelbot-msg.is-user .pixelbot-time {
+  text-align: right;
+}
+
+/* Tarjetas de Producto dentro del Chat */
+.pixelbot-products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.pixelbot-prod-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-align: left;
+}
+
+body.light .pixelbot-prod-card {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.pixelbot-prod-card:hover {
+  border-color: var(--accent2);
+  transform: translateX(4px);
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.pixelbot-prod-thumb {
+  width: 50px;
+  height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.pixelbot-prod-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pixelbot-prod-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-strong, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.light .pixelbot-prod-title {
+  color: #0f172a;
+}
+
+.pixelbot-prod-price {
+  font-size: 12px;
+  font-weight: 800;
+  color: #2ee59d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pixelbot-prod-btn {
+  padding: 4px 8px;
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  border-radius: 6px;
+  color: var(--accent2);
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Sugerencias Rápidas (Chips) */
+.pixelbot-chips-wrapper {
+  padding: 8px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.015);
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pixelbot-chips-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.pixelbot-chip {
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pixelbot-chip:hover {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.4);
+  color: var(--accent2);
+}
+
+/* Formulario de Entrada */
+.pixelbot-footer {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body.light .pixelbot-footer {
+  background: #f8fafc;
+  border-top-color: #e2e8f0;
+}
+
+.pixelbot-form {
+  display: flex;
+  gap: 8px;
+}
+
+.pixelbot-input {
+  flex: 1;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: var(--text-strong, #fff);
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+body.light .pixelbot-input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.pixelbot-input:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.pixelbot-send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  color: #ffffff;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+  flex-shrink: 0;
+}
+
+.pixelbot-send-btn:hover {
+  transform: scale(1.05);
+  filter: brightness(1.15);
+}
+
+/* Indicador de Escribiendo... */
+.pixelbot-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  width: fit-content;
+}
+
+.pixelbot-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent2);
+  animation: botBounce 1.4s infinite ease-in-out both;
+}
+
+.pixelbot-dot:nth-child(1) { animation-delay: -0.32s; }
+.pixelbot-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes botBounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
 

@@ -1511,3 +1511,111 @@ function renderProfile({ currentUser, favorites, orders, notifications, sellerRe
     </section>
   </div>`;
 }
+
+// ─── ASISTENTE GAMER VIRTUAL (PIXELBOT) ──────────────────────
+function renderPixelBot({ pixelBotOpen, pixelBotMessages = [], pixelBotTyping }) {
+  const defaultGreeting = {
+    sender: 'bot',
+    text: '¡Hola, gamer! 🎮 Soy **PixelBot**, tu asistente inteligente en PixelStore.\n\n¿Buscas recomendaciones según tu presupuesto, saber si un juego corre en tu PC o ver las ofertas más recientes?',
+    time: 'Ahora'
+  };
+
+  const messages = pixelBotMessages.length ? pixelBotMessages : [defaultGreeting];
+
+  const quickPrompts = [
+    { label: '🔥 Ofertas < $20', prompt: 'Muéstrame los mejores juegos en oferta por menos de $20' },
+    { label: '💻 Juegos para 8GB RAM', prompt: '¿Qué juegos corren fluido en una PC con 8GB de RAM?' },
+    { label: '🗡️ Mejores RPGs', prompt: 'Recomiéndame los mejores juegos RPG y de aventura' },
+    { label: '🕹️ Consolas oficiales', prompt: '¿Qué consolas tienen disponibles?' },
+    { label: '🔑 ¿Cómo canjeo mi clave?', prompt: '¿Cómo funciona la entrega y canje de claves digitales?' }
+  ];
+
+  return `
+  <!-- Botón Flotante de PixelBot -->
+  <button id="btn-pixelbot-toggle" class="pixelbot-floating-trigger" aria-label="Abrir asistente PixelBot">
+    <div class="pixelbot-avatar-badge">
+      <span>🤖</span>
+      <span class="pixelbot-online-dot"></span>
+    </div>
+    <div class="pixelbot-trigger-text">
+      <span class="pixelbot-trigger-title">PixelBot</span>
+      <span class="pixelbot-trigger-subtitle">Asistente Gamer IA</span>
+    </div>
+  </button>
+
+  <!-- Ventana de Chat de PixelBot -->
+  ${pixelBotOpen ? `
+  <div id="pixelbot-chat-window" class="pixelbot-window" role="dialog" aria-labelledby="pixelbot-header-title">
+    <div class="pixelbot-header">
+      <div class="pixelbot-header-info">
+        <div class="pixelbot-avatar-badge" style="width:32px;height:32px;font-size:16px;">
+          <span>🤖</span>
+          <span class="pixelbot-online-dot"></span>
+        </div>
+        <div>
+          <h4 id="pixelbot-header-title" class="pixelbot-header-title">PixelBot <span style="font-size:10px;background:rgba(0,229,255,0.15);color:var(--accent2);padding:1px 5px;border-radius:4px;">IA</span></h4>
+          <span class="pixelbot-header-status">● En línea · Especialista Gamer</span>
+        </div>
+      </div>
+      <div class="pixelbot-header-actions">
+        <button id="btn-pixelbot-reset" class="pixelbot-btn-icon" title="Reiniciar chat">🔄</button>
+        <button id="btn-pixelbot-close" class="pixelbot-btn-icon" title="Cerrar chat">✕</button>
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    <div id="pixelbot-messages-body" class="pixelbot-body">
+      ${messages.map(m => `
+        <div class="pixelbot-msg is-${m.sender}">
+          <div class="pixelbot-bubble">
+            ${m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
+            
+            ${m.products && m.products.length ? `
+              <div class="pixelbot-products-list">
+                ${m.products.map(p => `
+                  <div class="pixelbot-prod-card" data-bot-view-product="${p.type || 'game'}-${p.id}">
+                    <img src="${p.image}" alt="" class="pixelbot-prod-thumb" onerror="this.src='https://via.placeholder.com/50x38/111215/444?text=Game'">
+                    <div class="pixelbot-prod-info">
+                      <div class="pixelbot-prod-title">${p.title}</div>
+                      <div class="pixelbot-prod-price">$${p.price.toFixed(2)} ${p.discount ? `<span style="font-size:9.5px;color:#ff416c;font-weight:700;">(-${p.discount}%)</span>` : ''}</div>
+                    </div>
+                    <span class="pixelbot-prod-btn">Ver ➔</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+          <span class="pixelbot-time">${m.time || ''}</span>
+        </div>
+      `).join('')}
+
+      ${pixelBotTyping ? `
+        <div class="pixelbot-msg is-bot">
+          <div class="pixelbot-typing-indicator">
+            <span class="pixelbot-dot"></span>
+            <span class="pixelbot-dot"></span>
+            <span class="pixelbot-dot"></span>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Chips de Preguntas Frecuentes Rápidas -->
+    <div class="pixelbot-chips-wrapper">
+      ${quickPrompts.map(qp => `
+        <button type="button" class="pixelbot-chip" data-bot-prompt="${qp.prompt}">
+          ${qp.label}
+        </button>
+      `).join('')}
+    </div>
+
+    <!-- Formulario de Entrada -->
+    <div class="pixelbot-footer">
+      <form id="pixelbot-form" class="pixelbot-form">
+        <input type="text" id="pixelbot-input" class="pixelbot-input" placeholder="Pregúntale a PixelBot..." autocomplete="off" />
+        <button type="submit" class="pixelbot-send-btn" aria-label="Enviar mensaje">➤</button>
+      </form>
+    </div>
+  </div>` : ''}
+  `;
+}
