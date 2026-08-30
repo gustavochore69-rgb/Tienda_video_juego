@@ -331,6 +331,9 @@ function renderCart(cart, open, paymentMethod = 'card') {
                   <input type="text" id="card-expiry" class="card-field-input" placeholder="MM/AA" maxlength="5" autocomplete="cc-exp" inputmode="numeric" />
                   <input type="password" id="card-cvv" class="card-field-input" placeholder="CVV" maxlength="4" autocomplete="cc-csc" inputmode="numeric" />
                 </div>
+                <button type="button" id="btn-fill-demo-card" style="margin-top:6px;padding:6px 10px;background:rgba(0,229,255,0.08);border:1px dashed rgba(0,229,255,0.3);border-radius:6px;color:var(--accent2);font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;text-align:center;transition:background 160ms;">
+                  🪄 Rellenar con tarjeta de prueba (4532... / 12/28 / 789)
+                </button>
               </div>
               <p class="card-security-note">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -789,6 +792,157 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
   </div>`;
 }
 
+// ─── MODAL DE COMPRA EXITOSA & ENTREGA DE CLAVES DIGITALES ──────
+function renderOrderSuccessModal(order) {
+  if (!order) return '';
+  return `
+  <div id="modal-backdrop" class="modal-backdrop" style="z-index:140;">
+    <div class="modal-box" style="max-width:620px;" role="dialog" aria-modal="true">
+      <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);cursor:pointer;font-size:16px;font-family:inherit;">✕</button>
+      
+      <div class="order-success-hero">
+        <div class="order-success-icon">✓</div>
+        <h2 style="margin:0 0 4px;font-size:1.5rem;font-weight:800;background:linear-gradient(90deg,#a4d96f,#00e5ff);-webkit-background-clip:text;background-clip:text;color:transparent;">¡Compra Completada con Éxito!</h2>
+        <p style="margin:0;color:var(--muted);font-size:13.5px;">Pedido <strong>#${order.id}</strong> · Gracias por tu compra en PixelStore.</p>
+      </div>
+
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;">🔑 Tus Claves de Activación Digital</div>
+      
+      <div class="digital-keys-list">
+        ${order.items.map((item, idx) => `
+          <div class="digital-key-card">
+            <div class="key-card-header">
+              <span class="key-card-title">🎮 ${item.title}</span>
+              <span class="key-card-badge">${item.productId && item.productId.startsWith('consola') ? 'Garantía Hardware' : 'Clave Digital Global'}</span>
+            </div>
+            
+            <div class="key-box-display">
+              <span id="key-text-${idx}">${item.key || 'PIXEL-89FA-4491-GAME'}</span>
+              <button type="button" class="btn-copy-key" data-copy-key="${item.key || 'PIXEL-89FA-4491-GAME'}">Copiar Clave</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="key-guide-box">
+        <strong>💡 Instrucciones de canje:</strong>
+        <p style="margin:4px 0 0;">
+          Abre tu plataforma (Steam / PlayStation Store / Xbox / Nintendo eShop) > <em>"Canjear Código"</em> > Pega la clave entregada.
+        </p>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <button id="btn-print-receipt" class="receipt-print-btn" data-print-receipt="${order.id}" style="flex:1;padding:11px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#ffffff;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;text-shadow:0 1px 2px rgba(0,0,0,0.3);">
+          🖨️ Imprimir / Guardar Comprobante PDF
+        </button>
+        <button id="btn-close-modal-alt" style="padding:11px 18px;background:var(--surface2);border:1px solid var(--border-subtle);border-radius:9px;color:var(--text);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+// ─── MODAL DE COMPROBANTE / FACTURA IMPRIMIBLE ──────────────────
+function renderReceiptModal(order, buyerUser) {
+  if (!order) return '';
+  const dateStr = new Date(order.createdAt).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return `
+  <div id="modal-backdrop" class="modal-backdrop" style="z-index:150;">
+    <div class="modal-box" style="max-width:580px;background:#fff;color:#111827;padding:24px;" role="dialog" aria-modal="true">
+      <button id="btn-close-modal" aria-label="Cerrar" style="position:absolute;right:14px;top:14px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;color:#111827;cursor:pointer;font-size:16px;font-family:inherit;">✕</button>
+
+      <div id="printable-receipt-area" class="printable-ticket">
+        <div class="ticket-header">
+          <div class="ticket-logo">🎮 PixelStore</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:2px;">Comprobante de Compra Digital Oficial</div>
+          <div style="font-size:11px;color:#9ca3af;">soporte@pixelstore.com · www.pixelstore.com</div>
+        </div>
+
+        <table class="ticket-meta-table">
+          <tr>
+            <td style="color:#6b7280;">Nº Pedido:</td>
+            <td style="font-weight:700;text-align:right;">${order.id}</td>
+          </tr>
+          <tr>
+            <td style="color:#6b7280;">Fecha de emisión:</td>
+            <td style="text-align:right;">${dateStr}</td>
+          </tr>
+          <tr>
+            <td style="color:#6b7280;">Cliente:</td>
+            <td style="text-align:right;">${buyerUser?.fullName || 'Cliente PixelStore'}</td>
+          </tr>
+          <tr>
+            <td style="color:#6b7280;">Correo:</td>
+            <td style="text-align:right;">${buyerUser?.email || 'N/A'}</td>
+          </tr>
+          <tr>
+            <td style="color:#6b7280;">Método de Pago:</td>
+            <td style="text-align:right;text-transform:capitalize;">${order.payment?.method === 'qr' ? 'Código QR Bancario' : 'Tarjeta de Crédito/Débito'}</td>
+          </tr>
+        </table>
+
+        <table class="ticket-items-table">
+          <thead>
+            <tr>
+              <th>Producto / Licencia</th>
+              <th style="text-align:center;">Cant.</th>
+              <th style="text-align:right;">Precio</th>
+              <th style="text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${order.items.map(item => `
+              <tr>
+                <td>
+                  <strong>${item.title}</strong>
+                  ${item.key ? `<div style="font-family:monospace;font-size:10.5px;color:#2563eb;">Clave: ${item.key}</div>` : ''}
+                </td>
+                <td style="text-align:center;">${item.qty}</td>
+                <td style="text-align:right;">$${item.unitPrice.toFixed(2)}</td>
+                <td style="text-align:right;font-weight:700;">$${(item.unitPrice * item.qty).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div style="border-top:1px solid #e5e7eb;padding-top:10px;display:flex;flex-direction:column;gap:4px;font-size:12.5px;">
+          <div style="display:flex;justify-content:space-between;color:#6b7280;">
+            <span>Subtotal:</span>
+            <span>$${(order.pricing?.subtotal || order.pricing?.total).toFixed(2)}</span>
+          </div>
+          ${order.pricing?.discount > 0 ? `
+            <div style="display:flex;justify-content:space-between;color:#16a34a;font-weight:600;">
+              <span>Descuento aplicado:</span>
+              <span>-$${order.pricing.discount.toFixed(2)}</span>
+            </div>
+          ` : ''}
+          <div class="ticket-total-row">
+            <span>TOTAL PAGADO:</span>
+            <span>$${order.pricing?.total.toFixed(2)} USD</span>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:20px;font-size:11px;color:#9ca3af;border-top:1px dashed #e5e7eb;padding-top:10px;">
+          ¡Gracias por tu preferencia! Conserva este comprobante para cualquier reclamo o garantía.
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <button onclick="window.print()" style="flex:1;padding:11px;background:#111827;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">
+          🖨️ Imprimir Ticket / Guardar PDF
+        </button>
+        <button id="btn-close-modal-ticket" style="padding:11px 18px;background:#f3f4f6;border:1px solid #d1d5db;border-radius:8px;color:#111827;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>`;
+}
+
 // ─── STORE PAGE ───────────────────────────────────────────────
 function renderStore({ activeGenre, searchQuery, reviews, catalogFilters = {} }) {
   let games = activeGenre === 'todos' ? [...GAMES] : GAMES.filter(g => g.genres.includes(activeGenre));
@@ -1237,7 +1391,21 @@ function renderProfile({ currentUser, favorites, orders, notifications, sellerRe
       ${favoriteProducts.length ? `<div class="favorite-grid">${favoriteProducts.map(product => `<article class="favorite-card"><img src="${product.image}" alt="${product.title}"><div><h4>${product.title}</h4><p>$${product.price.toFixed(2)}</p><button data-view-product="${product.type}-${product.id}">Ver producto</button></div></article>`).join('')}</div>` : '<p class="empty-copy">Guarda juegos o consolas con el botón Favorito para verlos aquí.</p>'}
     </section>
     <section class="profile-section"><div class="section-title"><div><span class="eyebrow">Compras</span><h3>Historial de pedidos</h3></div><span>${userOrders.length} pedido${userOrders.length === 1 ? '' : 's'}</span></div>
-      ${userOrders.length ? `<div class="orders-list">${userOrders.map(order => `<article class="order-row"><div><strong>${order.id}</strong><span>${new Date(order.createdAt).toLocaleDateString('es')} · ${order.items.reduce((qty, item) => qty + item.qty, 0)} artículo(s)</span></div><div class="order-row__items">${order.items.map(item => item.title).join(', ')}</div><span class="order-status status-${order.status}">${labels[order.status] || order.status}</span><strong>$${order.pricing.total.toFixed(2)}</strong></article>`).join('')}</div>` : '<p class="empty-copy">Tus pedidos aparecerán aquí al finalizar una compra.</p>'}
+      ${userOrders.length ? `<div class="orders-list">${userOrders.map(order => `
+        <article class="order-row" style="flex-wrap:wrap;gap:12px;">
+          <div>
+            <strong>#${order.id}</strong>
+            <span>${new Date(order.createdAt).toLocaleDateString('es')} · ${order.items.reduce((qty, item) => qty + item.qty, 0)} artículo(s)</span>
+          </div>
+          <div class="order-row__items" style="flex:1;min-width:180px;">${order.items.map(item => item.title).join(', ')}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+            <span class="order-status status-${order.status}">${labels[order.status] || order.status}</span>
+            <strong style="color:#a4d96f;">$${order.pricing.total.toFixed(2)}</strong>
+            <button type="button" data-view-order-receipt="${order.id}" style="padding:6px 12px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:6px;color:var(--accent2);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 160ms ease;">
+              🔑 Claves & Ticket
+            </button>
+          </div>
+        </article>`).join('')}</div>` : '<p class="empty-copy">Tus pedidos aparecerán aquí al finalizar una compra.</p>'}
     </section>
   </div>`;
 }

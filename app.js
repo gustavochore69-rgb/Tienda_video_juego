@@ -5,7 +5,8 @@ const App = {
   state: {
     page: 'store',
     currentUser: null,
-    modal: null, // 'login' | 'register' | 'product' | null
+    modal: null, // 'login' | 'register' | 'product' | 'order-success' | 'receipt' | null
+    modalOrder: null,
     cart: [],
     cartOpen: false,
     paymentMethod: localStorage.getItem('ps_payment_method') || 'card',
@@ -205,6 +206,48 @@ const App = {
   createOrder() {
     if (!this.state.currentUser) { this.setState({ modal: 'login', cartOpen: false }); return; }
     if (!this.state.cart.length) return;
+
+    // Validación de campos de tarjeta cuando se paga con tarjeta
+    if (this.state.paymentMethod === 'card') {
+      const nameInput = document.getElementById('card-holder-name');
+      const numInput = document.getElementById('card-number');
+      const expInput = document.getElementById('card-expiry');
+      const cvvInput = document.getElementById('card-cvv');
+
+      const name = nameInput?.value?.trim() || '';
+      const num = numInput?.value?.replace(/\s/g, '') || '';
+      const exp = expInput?.value?.trim() || '';
+      const cvv = cvvInput?.value?.trim() || '';
+
+      if (!name) {
+        showToast('⚠️ Ingresa el nombre del titular de la tarjeta.');
+        nameInput?.focus();
+        return;
+      }
+      if (num.length < 15 || !/^\d+$/.test(num)) {
+        showToast('⚠️ Ingresa un número de tarjeta válido (16 dígitos).');
+        numInput?.focus();
+        return;
+      }
+      if (exp.length !== 5 || !exp.includes('/')) {
+        showToast('⚠️ Ingresa una fecha de expiración válida (MM/AA).');
+        expInput?.focus();
+        return;
+      }
+      const [m] = exp.split('/');
+      const monthNum = parseInt(m, 10);
+      if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        showToast('⚠️ Mes de expiración inválido (debe ser del 01 al 12).');
+        expInput?.focus();
+        return;
+      }
+      if (cvv.length < 3 || !/^\d+$/.test(cvv)) {
+        showToast('⚠️ Ingresa un código CVV válido (3 o 4 dígitos).');
+        cvvInput?.focus();
+        return;
+      }
+    }
+
     const subtotal = this.cartSubtotal();
     const total = subtotal;
     if (this.state.cart.some(item => item.qty > this.getStock(item.id, item.type))) {
@@ -212,21 +255,53 @@ const App = {
       return;
     }
     const now = new Date().toISOString();
+
+    // Generar claves de activación únicas para cada producto
+    const generateDigitalKey = (item) => {
+      const hex1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const hex2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const hex3 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      if (item.type === 'consola') {
+        const brand = (item.brand || 'PIXEL').substring(0, 3).toUpperCase();
+        return `SN-${brand}-${Math.floor(10000000 + Math.random() * 90000000)}`;
+      }
+      return `PIXEL-${hex1}-${hex2}-${hex3}`;
+    };
+
+    const orderItems = this.state.cart.map(item => ({
+      productId: `${item.type}-${item.id}`,
+      title: item.title || item.name,
+      image: item.image,
+      qty: item.qty,
+      unitPrice: item.price,
+      vendorId: item.vendorId || 2,
+      key: generateDigitalKey(item)
+    }));
+
     const order = {
       id: `PS-${Date.now().toString().slice(-7)}`,
       buyerId: this.state.currentUser.id,
-      items: this.state.cart.map(item => ({ productId: `${item.type}-${item.id}`, title: item.title || item.name, image: item.image, qty: item.qty, unitPrice: item.price, vendorId: item.vendorId || 2 })),
+      items: orderItems,
       pricing: { subtotal, discount: 0, total },
-      payment: { method: this.state.paymentMethod, status: 'pending' },
-      status: 'pending_payment',
+      payment: { method: this.state.paymentMethod, status: 'paid' },
+      status: 'paid',
       createdAt: now,
       updatedAt: now
     };
-    const notification = { id: Date.now(), userId: this.state.currentUser.id, text: `Pedido ${order.id} creado. Estado: pendiente de pago.`, read: false, createdAt: now };
+    const notification = { id: Date.now(), userId: this.state.currentUser.id, text: `¡Pedido ${order.id} completado con éxito! Tus claves ya están listas para canjear.`, read: false, createdAt: now };
     const stockByProduct = { ...this.state.stockByProduct };
     this.state.cart.forEach(item => { const key = `${item.type}-${item.id}`; stockByProduct[key] = Math.max(0, (stockByProduct[key] ?? 0) - item.qty); });
-    this.setState({ orders: [order, ...this.state.orders], notifications: [notification, ...this.state.notifications], stockByProduct, cart: [], cartOpen: false });
-    showToast(`✅ Pedido ${order.id} creado.`);
+    
+    this.setState({
+      orders: [order, ...this.state.orders],
+      notifications: [notification, ...this.state.notifications],
+      stockByProduct,
+      cart: [],
+      cartOpen: false,
+      modal: 'order-success',
+      modalOrder: order
+    });
+    showToast(`🎉 ¡Pedido #${order.id} confirmado! Claves generadas.`);
   },
 
   updateOrderStatus(id, status) {
@@ -458,6 +533,8 @@ const App = {
         currentUser,
         favorites
       ) : ''}
+      ${modal === 'order-success' ? renderOrderSuccessModal(this.state.modalOrder || orders[0]) : ''}
+      ${modal === 'receipt' ? renderReceiptModal(this.state.modalOrder || orders[0], currentUser) : ''}
       ${renderCart(cart, cartOpen, paymentMethod)}
     `;
 
@@ -540,6 +617,27 @@ const App = {
         e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
       });
     }
+
+    // Botón de autocompletar tarjeta de prueba
+    document.getElementById('btn-fill-demo-card')?.addEventListener('click', () => {
+      const nameEl = document.getElementById('card-holder-name');
+      const numEl = document.getElementById('card-number');
+      const expEl = document.getElementById('card-expiry');
+      const cvvEl = document.getElementById('card-cvv');
+      if (nameEl) nameEl.value = 'Juan Pérez';
+      if (numEl) {
+        numEl.value = '4532 1122 3344 5566';
+        const visaBadge = document.getElementById('brand-badge-visa');
+        const mcBadge = document.getElementById('brand-badge-mc');
+        visaBadge?.classList.add('is-active');
+        visaBadge?.classList.remove('is-dimmed');
+        mcBadge?.classList.add('is-dimmed');
+        mcBadge?.classList.remove('is-active');
+      }
+      if (expEl) expEl.value = '12/28';
+      if (cvvEl) cvvEl.value = '789';
+      showToast('💳 Tarjeta de prueba aplicada.');
+    });
 
     // Search
     document.getElementById('search-form')?.addEventListener('submit', e => {
@@ -634,11 +732,56 @@ const App = {
     // Iniciar sesión desde el modal de producto (para dejar reseña)
     document.getElementById('btn-login-from-review')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 
+    // Copiar Clave Digital al Portapapeles
+    document.querySelectorAll('[data-copy-key]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.copyKey;
+        if (!key) return;
+        navigator.clipboard?.writeText(key).then(() => {
+          btn.textContent = '¡Copiado! ✓';
+          btn.style.background = '#a4d96f';
+          btn.style.color = '#111';
+          setTimeout(() => {
+            btn.textContent = 'Copiar Clave';
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 2500);
+          showToast('📋 ¡Clave copiada al portapapeles!');
+        }).catch(() => {
+          showToast(`Clave: ${key}`);
+        });
+      });
+    });
+
+    // Ver Comprobante y Claves desde Historial de Pedidos en Perfil
+    document.querySelectorAll('[data-view-order-receipt]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const orderId = btn.dataset.viewOrderReceipt;
+        const ord = this.state.orders.find(o => o.id === orderId);
+        if (ord) {
+          this.setState({ modal: 'receipt', modalOrder: ord });
+        }
+      });
+    });
+
+    // Imprimir Comprobante desde Modal de Compra Exitosa
+    document.querySelectorAll('[data-print-receipt]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const orderId = btn.dataset.printReceipt;
+        const ord = this.state.orders.find(o => o.id === orderId);
+        if (ord) {
+          this.setState({ modal: 'receipt', modalOrder: ord });
+        }
+      });
+    });
+
     // Modals
     document.getElementById('modal-backdrop')?.addEventListener('click', e => {
       if (e.target === document.getElementById('modal-backdrop')) this.setState({ modal: null });
     });
     document.getElementById('btn-close-modal')?.addEventListener('click', () => this.setState({ modal: null }));
+    document.getElementById('btn-close-modal-alt')?.addEventListener('click', () => this.setState({ modal: null }));
+    document.getElementById('btn-close-modal-ticket')?.addEventListener('click', () => this.setState({ modal: null }));
     document.getElementById('btn-switch-register')?.addEventListener('click', () => this.setState({ modal: 'register' }));
     document.getElementById('btn-switch-login')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 

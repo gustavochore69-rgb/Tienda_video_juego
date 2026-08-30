@@ -2234,3 +2234,286 @@ body.light .pdetail-login-prompt {
   transform: translateY(-1px);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   CLAVES DIGITALES, COMPRA EXITOSA & COMPROBANTE IMPRIMIBLE
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Modal de Compra Exitosa */
+.order-success-hero {
+  text-align: center;
+  padding: 10px 0 20px;
+  border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.07));
+  margin-bottom: 18px;
+}
+
+.order-success-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(164, 217, 111, 0.15);
+  border: 2px solid #a4d96f;
+  color: #a4d96f;
+  font-size: 26px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  box-shadow: 0 0 20px rgba(164, 217, 111, 0.35);
+  animation: pulse-success 2s infinite;
+}
+
+@keyframes pulse-success {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(164, 217, 111, 0.3); }
+  50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(164, 217, 111, 0.6); }
+}
+
+/* Lista de Claves Digitales */
+.digital-keys-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.digital-key-card {
+  background: var(--surface2, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.key-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.key-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-strong, #fff);
+}
+
+.key-card-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--accent2);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+}
+
+.key-box-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px dashed rgba(0, 229, 255, 0.4);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #00e5ff;
+}
+
+.btn-copy-key {
+  padding: 5px 12px;
+  background: rgba(0, 229, 255, 0.15);
+  border: 1px solid rgba(0, 229, 255, 0.4);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: normal;
+  transition: all 160ms ease;
+}
+
+.btn-copy-key:hover {
+  background: var(--accent2);
+  color: #000000;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
+
+.key-guide-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMPROBANTE / FACTURA IMPRIMIBLE (TICKET)
+   ═══════════════════════════════════════════════════════════════════ */
+.printable-ticket {
+  background: #ffffff;
+  color: #111827;
+  padding: 18px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ticket-header {
+  text-align: center;
+  padding-bottom: 14px;
+  border-bottom: 2px dashed #e5e7eb;
+  margin-bottom: 14px;
+}
+
+.ticket-logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: 0.5px;
+}
+
+.ticket-meta-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.ticket-meta-table td {
+  padding: 3px 0;
+}
+
+.ticket-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.ticket-items-table th {
+  background: #f3f4f6;
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid #d1d5db;
+  color: #374151;
+  font-weight: 700;
+}
+
+.ticket-items-table td {
+  padding: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.ticket-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 800;
+  color: #111827;
+  border-top: 1px solid #d1d5db;
+  padding-top: 8px;
+  margin-top: 6px;
+}
+
+/* Reglas de impresión para PDF / Papel */
+@media print {
+  @page {
+    margin: 12mm 15mm;
+    size: auto;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Ocultar elementos generales de la interfaz web que no son del comprobante */
+  .site-header,
+  main,
+  footer,
+  .cart-sidebar,
+  .cart-overlay,
+  .toast,
+  .modal-btn-close,
+  button,
+  .order-success-hero,
+  .digital-keys-list,
+  .key-guide-box {
+    display: none !important;
+  }
+
+  /* Resetear el backdrop y modal para que no ocupen pantalla completa ni centren verticalmente */
+  #modal-backdrop,
+  .modal-backdrop {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    background: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    animation: none !important;
+  }
+
+  .modal-box {
+    position: static !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Contenedor del comprobante impreso en la parte superior limpia */
+  #printable-receipt-area,
+  .printable-ticket {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 680px !important;
+    margin: 0 auto !important;
+    padding: 24px 30px !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+  }
+
+  .ticket-header,
+  .ticket-meta-table,
+  .ticket-items-table,
+  .ticket-total-row {
+    color: #111827 !important;
+  }
+
+  .ticket-items-table th {
+    background-color: #f3f4f6 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+
