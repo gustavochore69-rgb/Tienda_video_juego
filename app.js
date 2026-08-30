@@ -803,12 +803,26 @@ const App = {
       document.getElementById(id)?.addEventListener('change', _syncProductPreview);
     });
     _syncProductPreview(); // initial state
+
+    // Toggle extensión vista previa (animación 2s)
+    const previewToggleBtn = document.getElementById('btn-toggle-preview');
+    const previewWrapper = document.getElementById('preview-extension-wrapper');
+    if (previewToggleBtn && previewWrapper) {
+      previewToggleBtn.addEventListener('click', () => {
+        previewWrapper.classList.toggle('collapsed');
+        const isCollapsed = previewWrapper.classList.contains('collapsed');
+        previewToggleBtn.setAttribute('aria-expanded', !isCollapsed);
+        previewToggleBtn.setAttribute('title', isCollapsed ? 'Mostrar vista previa' : 'Ocultar vista previa');
+      });
+    }
+
     document.querySelectorAll('[data-vendor-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-vendor-tab]').forEach(b => b.classList.remove('active-tab'));
         btn.classList.add('active-tab');
         document.querySelectorAll('[data-vendor-panel]').forEach(p => p.style.display = 'none');
-        document.querySelector(`[data-vendor-panel="${btn.dataset.vendorTab}"]`).style.display = 'block';
+        const targetPanel = document.querySelector(`[data-vendor-panel="${btn.dataset.vendorTab}"]`);
+        if (targetPanel) targetPanel.style.display = 'block';
       });
     });
 
