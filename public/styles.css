@@ -2235,6 +2235,159 @@ body.light .pdetail-login-prompt {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   PESTAÑAS DEL PRODUCTO & FICHA DE REQUISITOS PC
+   ═══════════════════════════════════════════════════════════════════ */
+.pdetail-tabs-bar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  margin-bottom: 18px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.pdetail-tab-btn {
+  background: none;
+  border: none;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 160ms ease;
+  font-family: inherit;
+  white-space: nowrap;
+  border-radius: 6px 6px 0 0;
+}
+
+.pdetail-tab-btn:hover {
+  color: var(--text-strong, #fff);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pdetail-tab-btn.is-active {
+  color: var(--accent2);
+  border-bottom-color: var(--accent2);
+  background: rgba(0, 229, 255, 0.06);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.35);
+}
+
+.pdetail-tab-panel {
+  animation: tabFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dual Grid de Requisitos de PC */
+.pc-req-dual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.pc-req-card {
+  background: var(--surface2, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pc-req-card:hover {
+  border-color: rgba(0, 229, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.light .pc-req-card {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.pc-req-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+  padding-bottom: 8px;
+}
+
+.pc-req-card-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-strong, #fff);
+}
+
+body.light .pc-req-card-title {
+  color: #0f172a;
+}
+
+.pc-req-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.pc-req-badge-min {
+  background: rgba(245, 166, 35, 0.12);
+  color: #f5a623;
+  border: 1px solid rgba(245, 166, 35, 0.3);
+}
+
+.pc-req-badge-rec {
+  background: rgba(164, 217, 111, 0.12);
+  color: #a4d96f;
+  border: 1px solid rgba(164, 217, 111, 0.3);
+}
+
+.pc-req-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.pc-req-table tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+body.light .pc-req-table tr {
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+
+.pc-req-table tr:last-child {
+  border-bottom: none;
+}
+
+.pc-req-label {
+  padding: 6px 0;
+  color: var(--muted);
+  font-weight: 600;
+  width: 38%;
+  vertical-align: top;
+}
+
+.pc-req-val {
+  padding: 6px 0;
+  color: var(--text-strong, #fff);
+  font-weight: 500;
+  vertical-align: top;
+}
+
+body.light .pc-req-val {
+  color: #1e293b;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    CLAVES DIGITALES, COMPRA EXITOSA & COMPROBANTE IMPRIMIBLE
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -2420,6 +2573,136 @@ body.light .pdetail-login-prompt {
   border-top: 1px solid #d1d5db;
   padding-top: 8px;
   margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BÚSQUEDA INSTANTÁNEA CON AUTOCOMPLETADO (LIVE SEARCH)
+   ═══════════════════════════════════════════════════════════════════ */
+.search-wrapper-rel {
+  position: relative;
+  flex: 1;
+  max-width: 480px;
+  min-width: 0;
+}
+
+.search-autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: rgba(18, 20, 26, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  max-height: 420px;
+  overflow-y: auto;
+  z-index: 120;
+  padding: 8px;
+  animation: dropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.light .search-autocomplete-dropdown {
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.search-cat-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--accent2);
+  padding: 6px 8px 4px;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 140ms ease, transform 140ms ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.search-result-item:hover {
+  background: var(--surface2, rgba(255, 255, 255, 0.06));
+  transform: translateX(2px);
+}
+
+body.light .search-result-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.search-result-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #1a1c23;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.search-result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-result-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong, #fff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-result-meta {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-result-pricing {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.search-result-price {
+  font-size: 13px;
+  font-weight: 800;
+  color: #a4d96f;
+}
+
+.search-result-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: rgba(255, 0, 47, 0.15);
+  color: #ff002f;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 0, 47, 0.3);
+}
+
+.search-no-results {
+  padding: 18px 12px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
 /* Reglas de impresión para PDF / Papel */

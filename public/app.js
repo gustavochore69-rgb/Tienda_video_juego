@@ -34,6 +34,7 @@ const App = {
     vendorProducts: JSON.parse(localStorage.getItem('ps_vendor_products') || 'null') || [...VENDOR_PRODUCTS],
     vendorSales: [...VENDOR_SALES],
     selectedProduct: null, // { id, type }
+    productTab: 'desc', // 'desc' | 'specs' | 'reviews'
     reviews: JSON.parse(localStorage.getItem('ps_reviews') || 'null') || JSON.parse(JSON.stringify(REVIEWS_SEED)),
     sellerRequests: JSON.parse(localStorage.getItem('ps_seller_requests') || '[]'),
   },
@@ -191,6 +192,10 @@ const App = {
   isFavorite(id, type) {
     const userId = this.state.currentUser?.id;
     return !!userId && (this.state.favorites[userId] || []).includes(`${type}-${id}`);
+  },
+
+  openProduct(id, type) {
+    this.setState({ selectedProduct: { id, type }, modal: 'product', productTab: 'desc' });
   },
 
   toggleFavorite(id, type) {
@@ -531,7 +536,8 @@ const App = {
         selectedProduct.type,
         this.getReviews(selectedProduct.id, selectedProduct.type),
         currentUser,
-        favorites
+        favorites,
+        this.state.productTab || 'desc'
       ) : ''}
       ${modal === 'order-success' ? renderOrderSuccessModal(this.state.modalOrder || orders[0]) : ''}
       ${modal === 'receipt' ? renderReceiptModal(this.state.modalOrder || orders[0], currentUser) : ''}
@@ -639,15 +645,110 @@ const App = {
       showToast('💳 Tarjeta de prueba aplicada.');
     });
 
-    // Search
+    // Live Search con Autocompletado en Vivo
+    const searchInput = document.getElementById('search-input');
+    const autocompleteBox = document.getElementById('search-autocomplete-box');
+
+    if (searchInput && autocompleteBox) {
+      searchInput.addEventListener('input', e => {
+        const query = e.target.value.trim().toLowerCase();
+        if (!query) {
+          autocompleteBox.style.display = 'none';
+          autocompleteBox.innerHTML = '';
+          return;
+        }
+
+        const escapeStr = str => (str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+
+        const matchedGames = GAMES.filter(g =>
+          g.title.toLowerCase().includes(query) ||
+          g.genreLabel.toLowerCase().includes(query) ||
+          (g.platform && g.platform.toLowerCase().includes(query))
+        ).slice(0, 4);
+
+        const matchedConsoles = CONSOLAS.filter(c =>
+          c.name.toLowerCase().includes(query) ||
+          c.brand.toLowerCase().includes(query) ||
+          (c.tagline && c.tagline.toLowerCase().includes(query))
+        ).slice(0, 3);
+
+        if (!matchedGames.length && !matchedConsoles.length) {
+          autocompleteBox.innerHTML = `
+            <div class="search-no-results">
+              🔍 No se encontraron productos para "<strong>${escapeStr(query)}</strong>"
+            </div>
+          `;
+          autocompleteBox.style.display = 'block';
+          return;
+        }
+
+        let html = '';
+        if (matchedGames.length) {
+          html += `<div class="search-cat-title">🎮 Videojuegos</div>`;
+          html += matchedGames.map(game => `
+            <div class="search-result-item" data-autocomplete-select="game-${game.id}">
+              <img src="${game.image}" alt="${escapeStr(game.title)}" class="search-result-thumb">
+              <div class="search-result-info">
+                <div class="search-result-title">${escapeStr(game.title)}</div>
+                <div class="search-result-meta">${escapeStr(game.genreLabel)} · ${escapeStr(game.platform)}</div>
+              </div>
+              <div class="search-result-pricing">
+                <div class="search-result-price">$${game.price.toFixed(2)}</div>
+                ${game.discount ? `<span class="search-result-badge">-${game.discount}%</span>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        if (matchedConsoles.length) {
+          html += `<div class="search-cat-title">🕹️ Consolas & Hardware</div>`;
+          html += matchedConsoles.map(con => `
+            <div class="search-result-item" data-autocomplete-select="consola-${con.id}">
+              <img src="${con.image}" alt="${escapeStr(con.name)}" class="search-result-thumb">
+              <div class="search-result-info">
+                <div class="search-result-title">${escapeStr(con.name)}</div>
+                <div class="search-result-meta">${escapeStr(con.brand.toUpperCase())} · ${escapeStr(con.storage || 'Edición Oficial')}</div>
+              </div>
+              <div class="search-result-pricing">
+                <div class="search-result-price">$${con.price.toFixed(2)}</div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        autocompleteBox.innerHTML = html;
+        autocompleteBox.style.display = 'block';
+
+        // Click en cualquier resultado para abrir el producto directamente
+        autocompleteBox.querySelectorAll('[data-autocomplete-select]').forEach(item => {
+          item.addEventListener('click', () => {
+            const [type, idStr] = item.dataset.autocompleteSelect.split('-');
+            autocompleteBox.style.display = 'none';
+            searchInput.value = '';
+            this.openProduct(+idStr, type);
+          });
+        });
+      });
+
+      // Cerrar al presionar Escape o hacer clic fuera de la barra
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.search-wrapper-rel')) {
+          autocompleteBox.style.display = 'none';
+        }
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          autocompleteBox.style.display = 'none';
+        }
+      });
+    }
+
+    // Search submit
     document.getElementById('search-form')?.addEventListener('submit', e => {
       e.preventDefault();
       const q = document.getElementById('search-input')?.value?.trim();
+      if (autocompleteBox) autocompleteBox.style.display = 'none';
       if (q) this.setState({ page: 'store', activeGenre: 'todos', searchQuery: q });
-    });
-    document.getElementById('search-input')?.addEventListener('input', e => {
-      this.state.searchQuery = e.target.value;
-      if (!e.target.value) this.setState({ searchQuery: '' });
     });
 
     // Genre filter
@@ -731,6 +832,29 @@ const App = {
 
     // Iniciar sesión desde el modal de producto (para dejar reseña)
     document.getElementById('btn-login-from-review')?.addEventListener('click', () => this.setState({ modal: 'login' }));
+
+    // Pestañas (Tabs) de Detalle de Producto (Cambio instantáneo sin resetear el scroll)
+    document.querySelectorAll('[data-pdetail-tab]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const tab = btn.dataset.pdetailTab;
+        this.state.productTab = tab;
+
+        // Actualizar aspecto activo de los botones
+        document.querySelectorAll('[data-pdetail-tab]').forEach(b => {
+          b.classList.toggle('is-active', b.dataset.pdetailTab === tab);
+        });
+
+        // Alternar paneles de contenido sin perder la posición de scroll
+        const descPanel = document.getElementById('pdetail-panel-desc');
+        const specsPanel = document.getElementById('pdetail-panel-specs');
+        const reviewsPanel = document.getElementById('pdetail-panel-reviews');
+
+        if (descPanel) descPanel.style.display = (tab === 'desc') ? 'block' : 'none';
+        if (specsPanel) specsPanel.style.display = (tab === 'specs') ? 'block' : 'none';
+        if (reviewsPanel) reviewsPanel.style.display = (tab === 'reviews') ? 'block' : 'none';
+      });
+    });
 
     // Copiar Clave Digital al Portapapeles
     document.querySelectorAll('[data-copy-key]').forEach(btn => {

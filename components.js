@@ -42,16 +42,19 @@ function renderHeader({ currentUser, cart, page }) {
         </div>
       </button>
 
-      <!-- Search -->
-      <form id="search-form" class="search-form" style="flex:1;display:flex;align-items:center;max-width:480px;border-radius:8px;min-width:0;">
-        <span style="padding:0 10px;flex-shrink:0;display:flex;align-items:center;"><svg width="18" height="17" viewBox="0 0 440 420" xmlns="http://www.w3.org/2000/svg" style="display:block;"><circle cx="136" cy="139" r="84" fill="none" stroke="#9aa1a6" stroke-width="16"/><path d="M 86 169 C 78 148 81 123 92 105 C 103 87 120 76 140 73" fill="none" stroke="#9aa1a6" stroke-width="14" stroke-linecap="round"/><path d="M 195 198 L 218 221 L 201 238 L 178 215 Z" fill="#9aa1a6"/><path d="M 210 214 L 278 282 C 286 290 286 303 278 311 L 269 320 C 261 328 248 328 240 320 L 172 252 C 164 244 164 231 172 223 L 181 214 C 189 206 202 206 210 214 Z" fill="#9aa1a6"/><path d="M 202 226 L 267 291 C 271 295 271 301 267 305 L 263 309 C 267 303 267 298 262 293 L 197 228 Z" fill="#ffffff"/><path d="M 248 318 C 255 325 264 325 271 319 L 278 312 C 285 305 285 296 279 290 L 268 300 C 273 305 273 310 268 315 L 263 320 C 258 324 252 323 248 318 Z" fill="#9aa1a6"/></svg></span>
-        <input id="search-input" type="search" placeholder="Buscar juegos, consolas..." style="flex:1;min-width:0;padding:9px 8px;background:transparent;border:none;color:var(--text);font-size:13.5px;font-family:inherit;outline:none;"
-          onfocus="this.closest('.search-form').classList.add('search-focused')"
-          onblur="this.closest('.search-form').classList.remove('search-focused')" />
-        <button type="submit" style="margin:3px;padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#ffffff;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;font-family:inherit;transition:filter 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
-          onmouseenter="this.style.filter='brightness(1.1)'"
-          onmouseleave="this.style.filter='none'">Buscar</button>
-      </form>
+      <!-- Search with Live Autocomplete -->
+      <div class="search-wrapper-rel">
+        <form id="search-form" class="search-form" style="display:flex;align-items:center;width:100%;border-radius:8px;min-width:0;" autocomplete="off">
+          <span style="padding:0 10px;flex-shrink:0;display:flex;align-items:center;"><svg width="18" height="17" viewBox="0 0 440 420" xmlns="http://www.w3.org/2000/svg" style="display:block;"><circle cx="136" cy="139" r="84" fill="none" stroke="#9aa1a6" stroke-width="16"/><path d="M 86 169 C 78 148 81 123 92 105 C 103 87 120 76 140 73" fill="none" stroke="#9aa1a6" stroke-width="14" stroke-linecap="round"/><path d="M 195 198 L 218 221 L 201 238 L 178 215 Z" fill="#9aa1a6"/><path d="M 210 214 L 278 282 C 286 290 286 303 278 311 L 269 320 C 261 328 248 328 240 320 L 172 252 C 164 244 164 231 172 223 L 181 214 C 189 206 202 206 210 214 Z" fill="#9aa1a6"/><path d="M 202 226 L 267 291 C 271 295 271 301 267 305 L 263 309 C 267 303 267 298 262 293 L 197 228 Z" fill="#ffffff"/><path d="M 248 318 C 255 325 264 325 271 319 L 278 312 C 285 305 285 296 279 290 L 268 300 C 273 305 273 310 268 315 L 263 320 C 258 324 252 323 248 318 Z" fill="#9aa1a6"/></svg></span>
+          <input id="search-input" type="search" placeholder="Buscar juegos, consolas..." style="flex:1;min-width:0;padding:9px 8px;background:transparent;border:none;color:var(--text);font-size:13.5px;font-family:inherit;outline:none;" autocomplete="off"
+            onfocus="this.closest('.search-form').classList.add('search-focused')"
+            onblur="this.closest('.search-form').classList.remove('search-focused')" />
+          <button type="submit" style="margin:3px;padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:6px;color:#ffffff;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;font-family:inherit;transition:filter 160ms;text-shadow:0 1px 2px rgba(0,0,0,0.3);"
+            onmouseenter="this.style.filter='brightness(1.1)'"
+            onmouseleave="this.style.filter='none'">Buscar</button>
+        </form>
+        <div id="search-autocomplete-box" class="search-autocomplete-dropdown" style="display:none;"></div>
+      </div>
 
       <!-- Nav -->
       <nav style="display:flex;gap:16px;align-items:center;flex-shrink:0;">
@@ -533,7 +536,7 @@ function renderSellerRequestModal() {
   </div>`;
 }
 
-function renderProductModal(product, type, reviews, currentUser, favorites = {}) {
+function renderProductModal(product, type, reviews, currentUser, favorites = {}, activeTab = 'desc') {
   if (!product) return '';
   const isGame = type === 'game';
   const name = isGame ? product.title : product.name;
@@ -580,7 +583,7 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
               <div class="pdetail-badge-instant">⚡ Entrega Inmediata</div>
             </div>
 
-            <!-- Mini Ficha de Verificación & Soporte (llena el espacio) -->
+            <!-- Mini Ficha de Verificación & Soporte -->
             <div class="pdetail-quick-box">
               <div class="pdetail-quick-item">
                 <span class="pdetail-quick-icon">🌐</span>
@@ -657,7 +660,7 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
           </div>
         </div>
 
-        <!-- Ficha Técnica con Iconos -->
+        <!-- Ficha Técnica Rápida con Iconos -->
         <div class="pdetail-specs-grid">
           <div class="pdetail-spec-card">
             <div class="pdetail-spec-icon">🎮</div>
@@ -689,102 +692,201 @@ function renderProductModal(product, type, reviews, currentUser, favorites = {})
           </div>
         </div>
 
-        <!-- Descripción y Highlights -->
-        <div class="pdetail-desc-box">
-          <div class="pdetail-section-title">📖 Descripción del producto</div>
-          <p class="pdetail-desc-text">${product.description || 'Sin descripción disponible para este producto.'}</p>
-          <div class="pdetail-desc-perks">
-            <div class="pdetail-desc-perk-item"><span>✓</span> Código verificable al instante</div>
-            <div class="pdetail-desc-perk-item"><span>✓</span> Descarga y juego en tu cuenta oficial</div>
-            <div class="pdetail-desc-perk-item"><span>✓</span> Soporte técnico garantizado</div>
-          </div>
+        <!-- Barra de Pestañas (Tabs) -->
+        <div class="pdetail-tabs-bar">
+          <button type="button" class="pdetail-tab-btn ${activeTab === 'desc' ? 'is-active' : ''}" data-pdetail-tab="desc">
+            📖 Descripción
+          </button>
+          ${isGame && product.requirements ? `
+          <button type="button" class="pdetail-tab-btn ${activeTab === 'specs' ? 'is-active' : ''}" data-pdetail-tab="specs">
+            💻 Requisitos PC
+          </button>` : ''}
+          <button type="button" class="pdetail-tab-btn ${activeTab === 'reviews' ? 'is-active' : ''}" data-pdetail-tab="reviews">
+            ⭐ Reseñas ${reviews.length ? `(${reviews.length})` : ''}
+          </button>
         </div>
 
-        <!-- También te puede gustar -->
-        ${related.length ? `
-        <div style="margin-bottom:22px;">
-          <div class="pdetail-section-title">✨ También te puede gustar</div>
-          <div class="pdetail-related-grid">
-            ${related.map(item => `
-              <button type="button" class="pdetail-rel-card" data-view-product="${type}-${item.id}">
-                <img src="${item.image}" alt="" class="pdetail-rel-img" onerror="this.src='https://via.placeholder.com/160x80/111215/444?text=Game'">
-                <div class="pdetail-rel-body">
-                  <span class="pdetail-rel-name">${item.title || item.name}</span>
-                  <span class="pdetail-rel-price">$${item.price.toFixed(2)}</span>
+        <!-- Panel 1: DESCRIPCIÓN -->
+        <div id="pdetail-panel-desc" class="pdetail-tab-panel" style="${activeTab === 'desc' ? 'display:block;' : 'display:none;'}">
+          <div class="pdetail-desc-box">
+            <div class="pdetail-section-title">📖 Acerca de este título</div>
+            <p class="pdetail-desc-text">${product.description || 'Sin descripción disponible para este producto.'}</p>
+            <div class="pdetail-desc-perks">
+              <div class="pdetail-desc-perk-item"><span>✓</span> Clave original verificada con entrega inmediata</div>
+              <div class="pdetail-desc-perk-item"><span>✓</span> Descarga y canje directo en tu cuenta oficial</div>
+              <div class="pdetail-desc-perk-item"><span>✓</span> Soporte y garantía post-venta de por vida</div>
+            </div>
+          </div>
+
+          <!-- También te puede gustar -->
+          ${related.length ? `
+          <div style="margin-bottom:22px;">
+            <div class="pdetail-section-title">✨ Títulos relacionados recomendados</div>
+            <div class="pdetail-related-grid">
+              ${related.map(item => `
+                <button type="button" class="pdetail-rel-card" data-view-product="${type}-${item.id}">
+                  <img src="${item.image}" alt="" class="pdetail-rel-img" onerror="this.src='https://via.placeholder.com/160x80/111215/444?text=Game'">
+                  <div class="pdetail-rel-body">
+                    <span class="pdetail-rel-name">${item.title || item.name}</span>
+                    <span class="pdetail-rel-price">$${item.price.toFixed(2)}</span>
+                  </div>
+                </button>
+              `).join('')}
+            </div>
+          </div>` : ''}
+        </div>
+
+        <!-- Panel 2: REQUISITOS PC -->
+        ${isGame && product.requirements ? `
+        <div id="pdetail-panel-specs" class="pdetail-tab-panel" style="${activeTab === 'specs' ? 'display:block;' : 'display:none;'}">
+          <div class="pdetail-desc-box">
+            <div class="pdetail-section-title">💻 Ficha Técnica y Requisitos del Sistema PC</div>
+            <p style="font-size:12.5px;color:var(--muted);margin:0 0 14px;line-height:1.5;">
+              Consulta las especificaciones de hardware recomendadas para garantizar el rendimiento óptimo y la mejor tasa de fotogramas (FPS) en <strong>${name}</strong>.
+            </p>
+
+            <div class="pc-req-dual-grid">
+              <!-- Requisitos Mínimos -->
+              <div class="pc-req-card">
+                <div class="pc-req-card-header">
+                  <span class="pc-req-card-title">Mínimos (720p / 30 FPS)</span>
+                  <span class="pc-req-badge pc-req-badge-min">Mínimo</span>
                 </div>
-              </button>
-            `).join('')}
+                <table class="pc-req-table">
+                  <tr>
+                    <td class="pc-req-label">🖥️ S.O.</td>
+                    <td class="pc-req-val">${product.requirements.minimum.os}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">⚡ CPU</td>
+                    <td class="pc-req-val">${product.requirements.minimum.cpu}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">🎮 GPU</td>
+                    <td class="pc-req-val">${product.requirements.minimum.gpu}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">🧠 RAM</td>
+                    <td class="pc-req-val">${product.requirements.minimum.ram}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">💾 Disco</td>
+                    <td class="pc-req-val">${product.requirements.minimum.storage}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">🎯 DirectX</td>
+                    <td class="pc-req-val">${product.requirements.minimum.directx}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Requisitos Recomendados -->
+              <div class="pc-req-card">
+                <div class="pc-req-card-header">
+                  <span class="pc-req-card-title">Recomendados (1080p-4K / 60+ FPS)</span>
+                  <span class="pc-req-badge pc-req-badge-rec">Recomendado</span>
+                </div>
+                <table class="pc-req-table">
+                  <tr>
+                    <td class="pc-req-label">🖥️ S.O.</td>
+                    <td class="pc-req-val">${product.requirements.recommended.os}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">⚡ CPU</td>
+                    <td class="pc-req-val">${product.requirements.recommended.cpu}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">🎮 GPU</td>
+                    <td class="pc-req-val">${product.requirements.recommended.gpu}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">🧠 RAM</td>
+                    <td class="pc-req-val">${product.requirements.recommended.ram}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">💾 Disco</td>
+                    <td class="pc-req-val">${product.requirements.recommended.storage}</td>
+                  </tr>
+                  <tr>
+                    <td class="pc-req-label">🎯 DirectX</td>
+                    <td class="pc-req-val">${product.requirements.recommended.directx}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
           </div>
         </div>` : ''}
 
-        <!-- Reseñas de la comunidad -->
-        <div class="pdetail-reviews-container">
-          <div class="pdetail-reviews-header">
-            <div class="pdetail-section-title" style="margin-bottom:0;">⭐ Opiniones de la comunidad ${reviews.length ? `(${reviews.length})` : ''}</div>
-          </div>
-
-          ${reviews.length ? `
-            <div class="pdetail-score-box">
-              <div class="pdetail-score-big">${rating.toFixed(1)}</div>
-              <div>
-                <div>${renderStars(rating, '16px')}</div>
-                <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">Basado en ${reviews.length} valoración${reviews.length === 1 ? '' : 'es'} de usuarios reales</div>
-              </div>
+        <!-- Panel 3: RESEÑAS -->
+        <div id="pdetail-panel-reviews" class="pdetail-tab-panel" style="${activeTab === 'reviews' ? 'display:block;' : 'display:none;'}">
+          <div class="pdetail-reviews-container" style="margin-top:0;">
+            <div class="pdetail-reviews-header">
+              <div class="pdetail-section-title" style="margin-bottom:0;">⭐ Opiniones de la comunidad ${reviews.length ? `(${reviews.length})` : ''}</div>
             </div>
-          ` : ''}
 
-          <div class="pdetail-reviews-list">
-            ${reviews.length === 0 ? `
-              <div style="padding:16px;text-align:center;background:rgba(255,255,255,0.02);border-radius:10px;color:var(--muted);font-size:13px;">
-                🎮 Aún no hay opiniones para este producto. ¡Sé el primero en calificarlo!
+            ${reviews.length ? `
+              <div class="pdetail-score-box">
+                <div class="pdetail-score-big">${rating.toFixed(1)}</div>
+                <div>
+                  <div>${renderStars(rating, '16px')}</div>
+                  <div style="font-size:11.5px;color:var(--muted);margin-top:2px;">Basado en ${reviews.length} valoración${reviews.length === 1 ? '' : 'es'} de usuarios reales</div>
+                </div>
               </div>
-            ` : reviews.slice().reverse().map(r => `
-              <div class="pdetail-review-card">
-                <div class="pdetail-review-top">
-                  <div class="pdetail-user-badge">
-                    <div class="pdetail-user-avatar">${getInitials(r.user)}</div>
-                    <div>
-                      <div style="display:flex;align-items:center;gap:6px;">
-                        <span class="pdetail-user-name">${r.user}</span>
-                        <span class="pdetail-verified-tag">✓ Verificado</span>
+            ` : ''}
+
+            <div class="pdetail-reviews-list">
+              ${reviews.length === 0 ? `
+                <div style="padding:20px;text-align:center;background:rgba(255,255,255,0.02);border-radius:10px;color:var(--muted);font-size:13px;">
+                  🎮 Aún no hay opiniones para este título. ¡Sé el primero en calificarlo!
+                </div>
+              ` : reviews.slice().reverse().map(r => `
+                <div class="pdetail-review-card">
+                  <div class="pdetail-review-top">
+                    <div class="pdetail-user-badge">
+                      <div class="pdetail-user-avatar">${getInitials(r.user)}</div>
+                      <div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                          <span class="pdetail-user-name">${r.user}</span>
+                          <span class="pdetail-verified-tag">✓ Verificado</span>
+                        </div>
                       </div>
                     </div>
+                    <span class="pdetail-review-date">${r.date}</span>
                   </div>
-                  <span class="pdetail-review-date">${r.date}</span>
+                  <div style="margin-bottom:6px;">${renderStars(r.rating, '13px')}</div>
+                  <p class="pdetail-review-text">"${r.comment}"</p>
                 </div>
-                <div style="margin-bottom:6px;">${renderStars(r.rating, '13px')}</div>
-                <p class="pdetail-review-text">"${r.comment}"</p>
-              </div>
-            `).join('')}
-          </div>
-
-          <!-- Formulario o Invitación a Login -->
-          ${currentUser ? `
-            <form id="review-form" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;">
-              <div style="font-size:12.5px;font-weight:700;color:var(--text-strong,#fff);margin-bottom:8px;">Deja tu opinión como <span style="color:var(--accent2);">${currentUser.fullName || currentUser.username}</span></div>
-              <div id="review-error" style="display:none;margin-bottom:10px;padding:8px 10px;background:rgba(255,20,20,0.12);color:#ffb7b7;border-radius:8px;font-size:12px;border:1px solid rgba(255,20,20,0.3);"></div>
-              <div style="margin-bottom:10px;">
-                <label class="field-label">Tu Calificación:</label>
-                <div class="pdetail-star-picker">
-                  ${[1, 2, 3, 4, 5].map(i => `<span data-star-select="${i}" title="${i} estrellas">☆</span>`).join('')}
-                  <input type="hidden" id="review-rating-input" value="0" />
-                </div>
-              </div>
-              <div style="margin-bottom:12px;">
-                <label class="field-label" for="review-comment">Tu Comentario:</label>
-                <textarea id="review-comment" class="field-input" rows="3" placeholder="¿Qué te pareció el juego, rendimiento, historia...?" style="resize:vertical;font-family:inherit;"></textarea>
-              </div>
-              <button type="submit" class="pdetail-login-btn" style="padding:10px 22px;">Publicar Reseña</button>
-            </form>
-          ` : `
-            <div class="pdetail-login-prompt">
-              <div>
-                <div style="font-size:13px;font-weight:700;color:var(--text-strong,#fff);">¿Has probado este título?</div>
-                <div style="font-size:12px;color:var(--muted);">Inicia sesión para compartir tu opinión con la comunidad gamer.</div>
-              </div>
-              <button id="btn-login-from-review" class="pdetail-login-btn">Iniciar Sesión</button>
+              `).join('')}
             </div>
-          `}
+
+            <!-- Formulario o Invitación a Login -->
+            ${currentUser ? `
+              <form id="review-form" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;margin-top:16px;">
+                <div style="font-size:12.5px;font-weight:700;color:var(--text-strong,#fff);margin-bottom:8px;">Deja tu opinión como <span style="color:var(--accent2);">${currentUser.fullName || currentUser.username}</span></div>
+                <div id="review-error" style="display:none;margin-bottom:10px;padding:8px 10px;background:rgba(255,20,20,0.12);color:#ffb7b7;border-radius:8px;font-size:12px;border:1px solid rgba(255,20,20,0.3);"></div>
+                <div style="margin-bottom:10px;">
+                  <label class="field-label">Tu Calificación:</label>
+                  <div class="pdetail-star-picker">
+                    ${[1, 2, 3, 4, 5].map(i => `<span data-star-select="${i}" title="${i} estrellas">☆</span>`).join('')}
+                    <input type="hidden" id="review-rating-input" value="0" />
+                  </div>
+                </div>
+                <div style="margin-bottom:12px;">
+                  <label class="field-label" for="review-comment">Tu Comentario:</label>
+                  <textarea id="review-comment" class="field-input" rows="3" placeholder="¿Qué te pareció el juego, rendimiento, historia...?" style="resize:vertical;font-family:inherit;"></textarea>
+                </div>
+                <button type="submit" class="pdetail-login-btn" style="padding:10px 22px;">Publicar Reseña</button>
+              </form>
+            ` : `
+              <div class="pdetail-login-prompt" style="margin-top:16px;">
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text-strong,#fff);">¿Has probado este título?</div>
+                  <div style="font-size:12px;color:var(--muted);">Inicia sesión para compartir tu opinión con la comunidad gamer.</div>
+                </div>
+                <button id="btn-login-from-review" class="pdetail-login-btn">Iniciar Sesión</button>
+              </div>
+            `}
+          </div>
         </div>
 
       </div>
