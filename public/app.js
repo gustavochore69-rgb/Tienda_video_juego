@@ -161,6 +161,14 @@ const App = {
     }
     this.setState({ cart });
     showToast('🛒 Agregado: ' + item.title);
+    setTimeout(() => {
+      const badge = document.querySelector('.cart-count-badge');
+      if (badge) {
+        badge.classList.remove('bounce');
+        void badge.offsetWidth;
+        badge.classList.add('bounce');
+      }
+    }, 10);
   },
 
   removeFromCart(id, type) {

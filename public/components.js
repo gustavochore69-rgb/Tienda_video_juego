@@ -65,29 +65,34 @@ function renderHeader({ currentUser, cart, page }) {
       <!-- User / Auth -->
       <div style="display:flex;gap:8px;align-items:center;margin-left:auto;flex-shrink:0;">
         <button id="btn-theme-toggle" class="theme-toggle-btn" type="button" aria-label="Cambiar a modo ${isLight ? 'oscuro' : 'claro'}">
-          ${isLight ? 'Oscuro' : 'Claro'}
+          ${isLight ? '🌙 Oscuro' : '☀️ Claro'}
         </button>
         ${currentUser?.role === 'client' ? `
-          <button data-request-vendor class="btn-glow" type="button" style="padding:7px 12px;background:var(--surface);border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--text-strong,#eef2f4);font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;">
+          <button data-request-vendor class="btn-glow" type="button" style="padding:7px 12px;background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.08));border-radius:8px;color:var(--text-strong,#eef2f4);font-size:12px;cursor:pointer;font-family:inherit;font-weight:700;">
             Ser vendedor
           </button>
         ` : ''}
         ${currentUser ? `
-          <div style="display:flex;flex-direction:column;align-items:flex-end;margin-right:4px;">
-            <span style="font-size:13px;font-weight:700;color:var(--text-strong,#fff);">${currentUser.fullName.split(' ')[0]}</span>
-            <span style="font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${roleColor};">${ROLE_LABELS[currentUser.role]}</span>
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 10px;background:var(--surface2,rgba(255,255,255,0.03));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:10px;margin-right:2px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#ffffff;font-weight:800;font-size:11.5px;text-transform:uppercase;box-shadow:0 0 8px rgba(var(--accent-rgb),0.3);flex-shrink:0;">
+              ${(currentUser.fullName || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;">
+              <span style="font-size:12.5px;font-weight:700;color:var(--text-strong,#fff);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${currentUser.fullName.split(' ')[0]}</span>
+              <span style="font-size:9.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:${roleColor};">${ROLE_LABELS[currentUser.role] || currentUser.role}</span>
+            </div>
           </div>
-          <button id="btn-logout" style="padding:7px 14px;background:transparent;border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;transition:color 160ms,border-color 160ms;"
-            onmouseenter="this.style.color='#fff';this.style.borderColor='rgba(255,0,47,0.4)'"
-            onmouseleave="this.style.color='var(--muted)';this.style.borderColor='var(--border,rgba(255,255,255,0.08))'">Salir</button>
+          <button id="btn-logout" style="padding:7px 14px;background:transparent;border:1px solid var(--border-subtle,rgba(255,255,255,0.08));border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;transition:color 160ms,border-color 160ms;"
+            onmouseenter="this.style.color='var(--text-strong,#fff)';this.style.borderColor='rgba(255,0,47,0.4)'"
+            onmouseleave="this.style.color='var(--muted)';this.style.borderColor='var(--border-subtle,rgba(255,255,255,0.08))'">Salir</button>
         ` : `
-          <button id="btn-login" class="btn-glow" style="padding:7px 14px;background:var(--surface);border:1px solid var(--border,rgba(255,255,255,0.08));border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;">Iniciar sesión</button>
+          <button id="btn-login" class="btn-glow" style="padding:7px 14px;background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.08));border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;">Iniciar sesión</button>
           <button id="btn-register" style="padding:7px 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#ffffff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;text-shadow:0 1px 2px rgba(0,0,0,0.3);">Registrarse</button>
         `}
         <button id="btn-cart" class="cart-trigger" aria-label="Abrir carrito${cartCount ? `, ${cartCount} productos` : ''}" style="padding:7px 14px;background:var(--surface2,rgba(255,255,255,0.04));border:1px solid var(--border-subtle,rgba(255,255,255,0.07));border-radius:8px;color:var(--text-strong,#fff);font-size:13px;cursor:pointer;font-family:inherit;font-weight:600;flex-shrink:0;position:relative;transition:border-color 200ms;display:inline-flex;align-items:center;gap:6px;"
           onmouseenter="this.style.borderColor='rgba(0,229,255,0.3)'"
-          onmouseleave="this.style.borderColor='rgba(255,255,255,0.07)'">
-          <svg width="22" height="16" viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 3px rgba(255,255,255,0.9)) drop-shadow(0 0 7px rgba(255,255,255,0.5));"><path d="M34 43 H61 L69 67" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><g fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round"><path d="M27 67 H52"/><path d="M22 82 H50"/><path d="M28 98 H51"/></g><path d="M68 67 H264 L238 132 Q235 139 226 139 H96 Q88 139 85 132 Z" fill="#ffffff" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/><path d="M88 139 L99 159 H230" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M99 159 C90 159 85 165 85 173 C85 181 91 185 101 185 H228" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/><circle cx="104" cy="199" r="12" fill="#ffffff"/><circle cx="221" cy="199" r="12" fill="#ffffff"/></svg>${cartCount > 0 ? `<span style="background:var(--accent);color:#fff;font-size:10px;font-weight:800;padding:1px 5px;border-radius:999px;">${cartCount}</span>` : ''}
+          onmouseleave="this.style.borderColor='var(--border-subtle,rgba(255,255,255,0.07))'">
+          <svg width="22" height="16" viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 3px rgba(var(--accent2-rgb),0.5));"><path d="M34 43 H61 L69 67" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"><path d="M27 67 H52"/><path d="M22 82 H50"/><path d="M28 98 H51"/></g><path d="M68 67 H264 L238 132 Q235 139 226 139 H96 Q88 139 85 132 Z" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M88 139 L99 159 H230" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M99 159 C90 159 85 165 85 173 C85 181 91 185 101 185 H228" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="104" cy="199" r="12" fill="currentColor"/><circle cx="221" cy="199" r="12" fill="currentColor"/></svg>${cartCount > 0 ? `<span style="background:var(--accent);color:#fff;font-size:10px;font-weight:800;padding:1px 5px;border-radius:999px;">${cartCount}</span>` : ''}
         </button>
       </div>
     </div>
@@ -645,19 +650,15 @@ function renderStore({ activeGenre, searchQuery, reviews, catalogFilters = {} })
   return `
   <div>
     <!-- Hero -->
-    <section class="hero-grid" style="position:relative;min-height:56vh;display:flex;align-items:center;margin:16px 20px;border-radius:18px;overflow:hidden;background:radial-gradient(560px 360px at 12% 18%,rgba(255,0,47,0.28),transparent 60%),radial-gradient(520px 400px at 88% 82%,rgba(0,229,255,0.2),transparent 60%),linear-gradient(160deg,#121319 0%,#0a0b0d 55%,#060607 100%);">
-      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,3,4,0) 0%,rgba(4,4,5,0.5) 100%);"></div>
-      <div style="position:relative;z-index:2;padding:56px 40px;max-width:var(--maxw);margin:0 auto;width:100%;">
+    <section class="hero-banner hero-grid">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
         <span class="eyebrow">Tu portal gamer</span>
-        <h2 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-0.6px;margin:0 0 12px;color:#fff;">Bienvenido a PixelStore</h2>
-        <p style="color:var(--muted);margin:0 0 24px;max-width:46ch;font-size:15px;">Encuentra tus juegos favoritos, ofertas exclusivas y las últimas novedades — todo en un solo lugar.</p>
-        <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
-          <button id="btn-explorar" style="padding:12px 22px;background:rgba(255,0,47,0.16);border:2px solid var(--accent);color:#ffffff;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;box-shadow:0 0 16px rgba(255,0,47,0.22);"
-            onmouseenter="this.style.background='rgba(255,0,47,0.28)';this.style.boxShadow='0 24px 60px rgba(255,0,47,0.35)';this.style.transform='translateY(-3px)'"
-            onmouseleave="this.style.background='rgba(255,0,47,0.16)';this.style.boxShadow='0 0 16px rgba(255,0,47,0.22)';this.style.transform='none'">Explorar juegos</button>
-          <button id="btn-consolas" style="padding:12px 22px;background:transparent;border:2px solid rgba(0,229,255,0.5);color:var(--accent2);border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:all 200ms ease;display:inline-flex;align-items:center;gap:8px;"
-            onmouseenter="this.style.background='rgba(0,229,255,0.06)';this.style.transform='translateY(-3px)'"
-            onmouseleave="this.style.background='transparent';this.style.transform='none'"><svg width="22" height="15" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(0,229,255,0.55));"><defs><linearGradient id="gpad-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff002f"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="url(#gpad-grad)"/><path d="M72 68 C77 49 94 39 116 39 H153 C162 39 168 44 170 53 L175 70 H88 C82 70 76 70 72 68 Z" fill="url(#gpad-grad)"/><path d="M448 68 C443 49 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H432 C438 70 444 70 448 68 Z" fill="url(#gpad-grad)"/><rect x="174" y="62" width="172" height="83" rx="2" fill="#0b0b0d"/><rect x="181" y="68" width="158" height="70" rx="1" fill="url(#gpad-grad)"/><g fill="#0b0b0d"><rect x="78" y="78" width="18" height="58" rx="2"/><rect x="58" y="98" width="58" height="18" rx="2"/></g><rect x="78" y="98" width="18" height="18" fill="#0b0b0d"/><circle cx="407" cy="72" r="13" fill="#0b0b0d"/><circle cx="382" cy="103" r="13" fill="#0b0b0d"/><circle cx="438" cy="103" r="13" fill="#0b0b0d"/><circle cx="410" cy="132" r="13" fill="#0b0b0d"/><circle cx="181" cy="204" r="25" fill="#0b0b0d"/><circle cx="181" cy="204" r="18" fill="url(#gpad-grad)"/><circle cx="339" cy="204" r="25" fill="#0b0b0d"/><circle cx="339" cy="204" r="18" fill="url(#gpad-grad)"/><rect x="204" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="291" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="249" y="157" width="22" height="8" rx="4" fill="#0b0b0d"/></svg> Consolas</button>
+        <h2 class="hero-title">Bienvenido a PixelStore</h2>
+        <p class="hero-desc">Encuentra tus juegos favoritos, ofertas exclusivas y las últimas novedades — todo en un solo lugar.</p>
+        <div class="hero-actions">
+          <button id="btn-explorar" class="hero-btn-primary">Explorar juegos</button>
+          <button id="btn-consolas" class="hero-btn-secondary"><svg width="22" height="15" viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="display:block;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(var(--accent2-rgb),0.55));"><defs><linearGradient id="gpad-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ff002f"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs><path d="M116 39 C94 39 77 50 68 68 C49 75 37 94 31 120 C24 149 22 190 22 225 C22 249 25 270 36 286 C45 299 58 306 72 305 C87 304 98 296 105 281 L135 218 C141 205 153 198 168 198 H352 C367 198 379 205 385 218 L415 281 C422 296 433 304 448 305 C462 306 475 299 484 286 C495 270 498 249 498 225 C498 190 496 149 489 120 C483 94 471 75 452 68 C443 50 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H175 L170 53 C168 44 162 39 153 39 Z" fill="url(#gpad-grad)"/><path d="M72 68 C77 49 94 39 116 39 H153 C162 39 168 44 170 53 L175 70 H88 C82 70 76 70 72 68 Z" fill="url(#gpad-grad)"/><path d="M448 68 C443 49 426 39 404 39 H367 C358 39 352 44 350 53 L345 70 H432 C438 70 444 70 448 68 Z" fill="url(#gpad-grad)"/><rect x="174" y="62" width="172" height="83" rx="2" fill="#0b0b0d"/><rect x="181" y="68" width="158" height="70" rx="1" fill="url(#gpad-grad)"/><g fill="#0b0b0d"><rect x="78" y="78" width="18" height="58" rx="2"/><rect x="58" y="98" width="58" height="18" rx="2"/></g><rect x="78" y="98" width="18" height="18" fill="#0b0b0d"/><circle cx="407" cy="72" r="13" fill="#0b0b0d"/><circle cx="382" cy="103" r="13" fill="#0b0b0d"/><circle cx="438" cy="103" r="13" fill="#0b0b0d"/><circle cx="410" cy="132" r="13" fill="#0b0b0d"/><circle cx="181" cy="204" r="25" fill="#0b0b0d"/><circle cx="181" cy="204" r="18" fill="url(#gpad-grad)"/><circle cx="339" cy="204" r="25" fill="#0b0b0d"/><circle cx="339" cy="204" r="18" fill="url(#gpad-grad)"/><rect x="204" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="291" y="157" width="25" height="10" rx="5" fill="#0b0b0d"/><rect x="249" y="157" width="22" height="8" rx="4" fill="#0b0b0d"/></svg> Consolas</button>
         </div>
       </div>
     </section>
@@ -681,21 +682,21 @@ function renderStore({ activeGenre, searchQuery, reviews, catalogFilters = {} })
         </div>
         ${games.length === 0 ? `<p style="color:var(--muted);text-align:center;padding:40px 0;">No hay juegos en esta categoría.</p>` : `
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
-          ${games.map(g => renderGameCard(g, reviews)).join('')}
+          ${games.map((g, i) => renderGameCard(g, reviews, i)).join('')}
         </div>`}
       </section>
     </div>
   </div>`;
 }
 
-function renderGameCard(g, reviews) {
+function renderGameCard(g, reviews, index = 0) {
   const list = (reviews && reviews[`game-${g.id}`]) || [];
   const rating = avgRating(list);
   return `
-  <article class="game-card" data-view-product="game-${g.id}" style="cursor:pointer;background:var(--surface);border:1px solid rgba(255,255,255,0.05);border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.6);display:flex;flex-direction:column;">
-    <div style="position:relative;overflow:hidden;background:#0a0a0c;height:170px;">
+  <article class="game-card" data-view-product="game-${g.id}" style="animation-delay:${Math.min(index * 45, 450)}ms;">
+    <div style="position:relative;overflow:hidden;background:var(--surface2,#0a0a0c);height:170px;">
       <img class="card-img" src="${g.image}" alt="${g.title}" style="width:100%;height:170px;object-fit:cover;" onerror="this.src='https://via.placeholder.com/280x170/111215/444?text=Game'">
-      ${g.discount ? `<div style="position:absolute;top:10px;right:10px;background:#4c6b22;color:#a4d96f;font-size:11px;font-weight:800;padding:3px 7px;border-radius:5px;">-${g.discount}%</div>` : ''}
+      ${g.discount ? `<div class="discount-tag">-${g.discount}%</div>` : ''}
     </div>
     <div style="padding:14px 14px 16px;display:flex;flex-direction:column;gap:8px;flex:1;">
       <h4 style="margin:0;font-size:14.5px;font-weight:700;color:var(--text-strong,#eef2f4);line-height:1.3;">${g.title}</h4>
@@ -726,7 +727,7 @@ function renderConsolas({ activeBrand, reviews }) {
   <div style="max-width:var(--maxw);margin:0 auto;padding:32px 20px 60px;">
     <div style="margin-bottom:28px;">
       <span class="eyebrow">Hardware</span>
-      <h2 style="margin:0;font-size:2rem;font-weight:800;">Consolas</h2>
+      <h2 style="margin:0;font-size:2rem;font-weight:800;color:var(--text-strong,#fff);">Consolas</h2>
       <p style="margin:8px 0 0;color:var(--muted);font-size:14px;">Las mejores consolas de la generación actual.</p>
     </div>
 
@@ -737,19 +738,19 @@ function renderConsolas({ activeBrand, reviews }) {
           ${activeBrand === b
             ? 'border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#ffffff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.3);'
             : 'border:1px solid var(--border-subtle,rgba(255,255,255,0.07));background:var(--surface);color:var(--muted);font-weight:400;'}"
-          onmouseenter="${activeBrand !== b ? "this.style.borderColor='rgba(255,255,255,0.18)';this.style.color='#fff'" : ''}"
-          onmouseleave="${activeBrand !== b ? "this.style.borderColor='rgba(255,255,255,0.07)';this.style.color='var(--muted)'" : ''}"
+          onmouseenter="${activeBrand !== b ? "this.style.borderColor='rgba(var(--accent2-rgb),0.5)';this.style.color='var(--text-strong,#fff)'" : ''}"
+          onmouseleave="${activeBrand !== b ? "this.style.borderColor='var(--border-subtle,rgba(255,255,255,0.07))';this.style.color='var(--muted)'" : ''}"
         >${b === 'todos' ? 'Todas' : b}</button>
       `).join('')}
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;">
-      ${consolas.map(c => {
+      ${consolas.map((c, index) => {
         const list = (reviews && reviews[`consola-${c.id}`]) || [];
         const rating = avgRating(list);
         return `
-        <article class="game-card" data-view-product="consola-${c.id}" style="cursor:pointer;background:var(--surface);border:1px solid rgba(255,255,255,0.05);border-radius:12px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,0.6);display:flex;flex-direction:column;">
-          <div style="overflow:hidden;height:180px;background:#0a0a0c;">
+        <article class="game-card" data-view-product="consola-${c.id}" style="animation-delay:${Math.min(index * 45, 450)}ms;">
+          <div style="overflow:hidden;height:180px;background:var(--surface2,#0a0a0c);">
             <img class="card-img" src="${c.image}" alt="${c.name}" style="width:100%;height:180px;object-fit:cover;" onerror="this.src='https://via.placeholder.com/260x180/111215/444?text=Consola'">
           </div>
           <div style="padding:14px 14px 16px;display:flex;flex-direction:column;gap:8px;">

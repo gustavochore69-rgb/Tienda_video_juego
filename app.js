@@ -8,6 +8,14 @@ const App = {
     modal: null, // 'login' | 'register' | 'product' | null
     cart: [],
     cartOpen: false,
+    paymentMethod: localStorage.getItem('ps_payment_method') || 'card',
+    favorites: JSON.parse(localStorage.getItem('ps_favorites') || '{}'),
+    orders: JSON.parse(localStorage.getItem('ps_orders') || '[]'),
+    notifications: JSON.parse(localStorage.getItem('ps_notifications') || '[]'),
+    stockByProduct: JSON.parse(localStorage.getItem('ps_stock_by_product') || 'null') || Object.fromEntries([
+      ...GAMES.map((item, index) => [`game-${item.id}`, 25 + (index % 4) * 10]),
+      ...CONSOLAS.map((item, index) => [`consola-${item.id}`, 8 + index * 3])
+    ]),
     users: (() => {
       const saved = JSON.parse(localStorage.getItem('ps_users') || '[]');
       const base = (typeof USERS !== 'undefined') ? [...USERS] : [];
@@ -20,19 +28,28 @@ const App = {
     })(),
     searchQuery: '',
     activeGenre: 'todos',
+    catalogFilters: { sort: 'featured', price: 'all', dealsOnly: false },
     activeBrand: 'todos',
     vendorProducts: JSON.parse(localStorage.getItem('ps_vendor_products') || 'null') || [...VENDOR_PRODUCTS],
     vendorSales: [...VENDOR_SALES],
     selectedProduct: null, // { id, type }
     reviews: JSON.parse(localStorage.getItem('ps_reviews') || 'null') || JSON.parse(JSON.stringify(REVIEWS_SEED)),
+    sellerRequests: JSON.parse(localStorage.getItem('ps_seller_requests') || '[]'),
   },
 
   init() {
+    // Limpieza de datos de una versión anterior que incluía cupones.
+    localStorage.removeItem('ps_active_coupon');
+    // Restaurar tema
+    if (localStorage.getItem('ps_theme') === 'light') {
+      document.body.classList.add('light');
+    }
     // Detectar página actual desde la URL
     const path = window.location.pathname.toLowerCase();
     if (path.includes('consolas')) this.state.page = 'consolas';
     else if (path.includes('admin')) this.state.page = 'admin';
     else if (path.includes('vendor')) this.state.page = 'vendor';
+    else if (path.includes('perfil')) this.state.page = 'profile';
     else this.state.page = 'store';
 
     // Restaurar sesión
@@ -55,6 +72,13 @@ const App = {
     if ('cart' in patch) {
       localStorage.setItem('ps_cart', JSON.stringify(this.state.cart));
     }
+    if ('paymentMethod' in patch) {
+      localStorage.setItem('ps_payment_method', this.state.paymentMethod);
+    }
+    if ('stockByProduct' in patch) localStorage.setItem('ps_stock_by_product', JSON.stringify(this.state.stockByProduct));
+    ['favorites', 'orders', 'notifications'].forEach(key => {
+      if (key in patch) localStorage.setItem(`ps_${key}`, JSON.stringify(this.state[key]));
+    });
     this.render();
   },
 
@@ -67,7 +91,8 @@ const App = {
       store:    'index.html',
       consolas: 'consolas.html',
       admin:    'admin.html',
-      vendor:   'vendor.html'
+      vendor:   'vendor.html',
+      profile:  'perfil.html'
     };
     window.location.href = urls[page] || 'index.html';
   },
@@ -121,25 +146,105 @@ const App = {
   // Carrito
   addToCart(item) {
     const existing = this.state.cart.find(c => c.id === item.id && c.type === item.type);
+    const stock = this.getStock(item.id, item.type);
+    if (existing && existing.qty >= stock) {
+      showToast('No hay más unidades disponibles de este producto.');
+      return;
+    }
     let cart;
     if (existing) {
       cart = this.state.cart.map(c =>
         c.id === item.id && c.type === item.type ? { ...c, qty: c.qty + 1 } : c
       );
     } else {
-      cart = [...this.state.cart, { ...item, qty: 1 }];
+      cart = [...this.state.cart, { ...item, stock, qty: 1 }];
     }
     this.setState({ cart });
     showToast('🛒 Agregado: ' + item.title);
+    setTimeout(() => {
+      const badge = document.querySelector('.cart-count-badge');
+      if (badge) {
+        badge.classList.remove('bounce');
+        void badge.offsetWidth;
+        badge.classList.add('bounce');
+      }
+    }, 10);
   },
 
   removeFromCart(id, type) {
     this.setState({ cart: this.state.cart.filter(c => !(c.id === id && c.type === type)) });
   },
 
-  cartTotal() {
+  changeCartQuantity(id, type, change) {
+    const item = this.state.cart.find(c => c.id === id && c.type === type);
+    if (!item) return;
+    const qty = Math.max(0, Math.min(item.stock ?? 99, item.qty + change));
+    if (qty === 0) return this.removeFromCart(id, type);
+    this.setState({ cart: this.state.cart.map(c => c.id === id && c.type === type ? { ...c, qty } : c) });
+  },
+
+  getStock(id, type) {
+    return this.state.stockByProduct[`${type}-${id}`] ?? 0;
+  },
+
+  isFavorite(id, type) {
+    const userId = this.state.currentUser?.id;
+    return !!userId && (this.state.favorites[userId] || []).includes(`${type}-${id}`);
+  },
+
+  toggleFavorite(id, type) {
+    if (!this.state.currentUser) { this.setState({ modal: 'login' }); return; }
+    const userId = this.state.currentUser.id;
+    const key = `${type}-${id}`;
+    const current = this.state.favorites[userId] || [];
+    const list = current.includes(key) ? current.filter(item => item !== key) : [...current, key];
+    this.setState({ favorites: { ...this.state.favorites, [userId]: list } });
+    showToast(current.includes(key) ? 'Favorito eliminado' : '❤ Guardado en favoritos');
+  },
+
+  createOrder() {
+    if (!this.state.currentUser) { this.setState({ modal: 'login', cartOpen: false }); return; }
+    if (!this.state.cart.length) return;
+    const subtotal = this.cartSubtotal();
+    const total = subtotal;
+    if (this.state.cart.some(item => item.qty > this.getStock(item.id, item.type))) {
+      showToast('El stock cambió. Revisa las cantidades de tu carrito.');
+      return;
+    }
+    const now = new Date().toISOString();
+    const order = {
+      id: `PS-${Date.now().toString().slice(-7)}`,
+      buyerId: this.state.currentUser.id,
+      items: this.state.cart.map(item => ({ productId: `${item.type}-${item.id}`, title: item.title || item.name, image: item.image, qty: item.qty, unitPrice: item.price, vendorId: item.vendorId || 2 })),
+      pricing: { subtotal, discount: 0, total },
+      payment: { method: this.state.paymentMethod, status: 'pending' },
+      status: 'pending_payment',
+      createdAt: now,
+      updatedAt: now
+    };
+    const notification = { id: Date.now(), userId: this.state.currentUser.id, text: `Pedido ${order.id} creado. Estado: pendiente de pago.`, read: false, createdAt: now };
+    const stockByProduct = { ...this.state.stockByProduct };
+    this.state.cart.forEach(item => { const key = `${item.type}-${item.id}`; stockByProduct[key] = Math.max(0, (stockByProduct[key] ?? 0) - item.qty); });
+    this.setState({ orders: [order, ...this.state.orders], notifications: [notification, ...this.state.notifications], stockByProduct, cart: [], cartOpen: false });
+    showToast(`✅ Pedido ${order.id} creado.`);
+  },
+
+  updateOrderStatus(id, status) {
+    const order = this.state.orders.find(item => item.id === id);
+    if (!order) return;
+    const labels = { pending_payment: 'pendiente de pago', paid: 'pagado', processing: 'en preparación', ready: 'listo', delivered: 'entregado', cancelled: 'cancelado' };
+    const updatedAt = new Date().toISOString();
+    const orders = this.state.orders.map(item => item.id === id ? { ...item, status, updatedAt } : item);
+    const notification = { id: Date.now(), userId: order.buyerId, text: `Tu pedido ${id} ahora está ${labels[status] || status}.`, read: false, createdAt: updatedAt };
+    this.setState({ orders, notifications: [notification, ...this.state.notifications] });
+    showToast('Estado del pedido actualizado.');
+  },
+
+  cartSubtotal() {
     return this.state.cart.reduce((sum, c) => sum + c.price * c.qty, 0);
   },
+
+  cartTotal() { return this.cartSubtotal(); },
 
   // Detalle de producto y reseñas
   openProduct(id, type) {
@@ -161,12 +266,132 @@ const App = {
       user: this.state.currentUser.fullName,
       rating,
       comment,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      status: this.state.currentUser.role === 'admin' ? 'approved' : 'pending'
     };
     const updated = { ...this.state.reviews, [key]: [...list, newReview] };
     localStorage.setItem('ps_reviews', JSON.stringify(updated));
     this.setState({ reviews: updated });
     showToast('✅ ¡Gracias por tu reseña!');
+  },
+
+  // Solicitudes de cliente para convertirse en vendedor
+  getSellerRequestForUser(userId) {
+    return this.state.sellerRequests.find(r => r.userId === userId && r.status === 'pendiente');
+  },
+
+  submitSellerRequest(data) {
+    const user = this.state.currentUser;
+    if (!user || user.role !== 'client') return 'Solo los clientes pueden solicitar ser vendedores.';
+    if (this.getSellerRequestForUser(user.id)) return 'Ya tienes una solicitud pendiente.';
+
+    const request = {
+      id: Date.now(),
+      userId: user.id,
+      applicantName: user.fullName,
+      email: user.email,
+      phone: data.phone,
+      saleType: data.saleType,
+      product: {
+        title: data.productTitle,
+        description: data.productDescription,
+        price: Number(data.productPrice),
+        stock: Number(data.productStock),
+        image: data.productImage
+      },
+      acceptedTerms: true,
+      status: 'pendiente',
+      createdAt: new Date().toISOString()
+    };
+
+    const sellerRequests = [...this.state.sellerRequests, request];
+    localStorage.setItem('ps_seller_requests', JSON.stringify(sellerRequests));
+    this.setState({ sellerRequests, modal: null });
+    showToast('📨 Solicitud enviada al administrador.');
+  },
+
+  approveSellerRequest(id) {
+    if (this.state.currentUser?.role !== 'admin') return;
+    const request = this.state.sellerRequests.find(r => r.id === id && r.status === 'pendiente');
+    if (!request) return;
+
+    const users = this.state.users.map(u =>
+      u.id === request.userId ? { ...u, role: 'vendor' } : u
+    );
+    const approvedUser = users.find(u => u.id === request.userId);
+    const sellerRequests = this.state.sellerRequests.map(r =>
+      r.id === id ? { ...r, status: 'aprobada', reviewedAt: new Date().toISOString() } : r
+    );
+
+    const nextId = this.state.vendorProducts.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0) + 1;
+    const vendorProducts = [
+      ...this.state.vendorProducts,
+      {
+        id: nextId,
+        title: request.product.title,
+        price: request.product.price,
+        stock: request.product.stock,
+        image: request.product.image,
+        description: request.product.description,
+        category: request.saleType,
+        vendorId: request.userId
+      }
+    ];
+
+    const notifications = [
+      {
+        id: Date.now(),
+        userId: request.userId,
+        text: '✅ Tu solicitud para ser vendedor fue aprobada. Ya puedes acceder a Mi Panel.',
+        read: false,
+        createdAt: new Date().toISOString()
+      },
+      ...this.state.notifications
+    ];
+
+    localStorage.setItem('ps_seller_requests', JSON.stringify(sellerRequests));
+    localStorage.setItem('ps_users', JSON.stringify(users));
+    localStorage.setItem('ps_vendor_products', JSON.stringify(vendorProducts));
+
+    const patch = { sellerRequests, users, vendorProducts, notifications };
+    if (approvedUser) {
+      localStorage.setItem('ps_session', JSON.stringify(approvedUser));
+    }
+
+    this.setState(patch);
+    showToast('✅ Solicitud aprobada. El cliente ahora es vendedor.');
+  },
+
+  rejectSellerRequest(id) {
+    if (this.state.currentUser?.role !== 'admin') return;
+    const reason = prompt('Motivo del rechazo (opcional):', '');
+    if (reason === null) return;
+
+    const request = this.state.sellerRequests.find(r => r.id === id && r.status === 'pendiente');
+    if (!request) return;
+
+    const sellerRequests = this.state.sellerRequests.map(r =>
+      r.id === id
+        ? { ...r, status: 'rechazada', rejectionReason: reason.trim(), reviewedAt: new Date().toISOString() }
+        : r
+    );
+
+    const notifications = [
+      {
+        id: Date.now(),
+        userId: request.userId,
+        text: reason.trim()
+          ? `❌ Tu solicitud para ser vendedor fue rechazada: ${reason.trim()}`
+          : '❌ Tu solicitud para ser vendedor fue rechazada.',
+        read: false,
+        createdAt: new Date().toISOString()
+      },
+      ...this.state.notifications
+    ];
+
+    localStorage.setItem('ps_seller_requests', JSON.stringify(sellerRequests));
+    this.setState({ sellerRequests, notifications });
+    showToast('Solicitud rechazada.');
   },
 
   // Gestión de productos (vendedor y administrador)
@@ -187,10 +412,14 @@ const App = {
     if (priceStr === null) return;
     const price = parseFloat(priceStr);
     if (isNaN(price) || price <= 0) { alert('Precio inválido.'); return; }
-    const updated = this.state.vendorProducts.map(p => p.id === id ? { ...p, price } : p);
+    const stockStr = prompt(`Stock disponible para "${product.title}":`, product.stock);
+    if (stockStr === null) return;
+    const stock = parseInt(stockStr, 10);
+    if (!Number.isInteger(stock) || stock < 0) { alert('Stock inválido.'); return; }
+    const updated = this.state.vendorProducts.map(p => p.id === id ? { ...p, price, stock } : p);
     localStorage.setItem('ps_vendor_products', JSON.stringify(updated));
     this.setState({ vendorProducts: updated });
-    showToast('✅ Precio actualizado');
+    showToast('✅ Precio y stock actualizados');
   },
 
   // Gestión de usuarios (administrador)
@@ -206,7 +435,7 @@ const App = {
 
   // Render principal
   render() {
-    const { page, currentUser, modal, cart, cartOpen, selectedProduct } = this.state;
+    const { page, currentUser, modal, cart, cartOpen, paymentMethod, selectedProduct, favorites, orders, notifications } = this.state;
 
     document.getElementById('app').innerHTML = `
       ${renderHeader(this.state)}
@@ -215,18 +444,21 @@ const App = {
         ${page === 'consolas' ? renderConsolas(this.state) : ''}
         ${page === 'admin' && currentUser?.role === 'admin' ? renderAdmin(this.state) : ''}
         ${page === 'vendor' && currentUser?.role === 'vendor' ? renderVendor(this.state) : ''}
+        ${page === 'profile' && currentUser ? renderProfile({ currentUser, favorites, orders, notifications, sellerRequests: this.state.sellerRequests }) : ''}
         ${page === 'admin' && currentUser?.role !== 'admin' ? `<div style="padding:80px 24px;text-align:center;color:var(--muted)"><p>Acceso restringido.</p></div>` : ''}
       </main>
       ${renderFooter()}
       ${modal === 'login' ? renderLoginModal() : ''}
       ${modal === 'register' ? renderRegisterModal() : ''}
+      ${modal === 'seller-request' ? renderSellerRequestModal() : ''}
       ${modal === 'product' && selectedProduct ? renderProductModal(
         this.getProductById(selectedProduct.id, selectedProduct.type),
         selectedProduct.type,
         this.getReviews(selectedProduct.id, selectedProduct.type),
-        currentUser
+        currentUser,
+        favorites
       ) : ''}
-      ${renderCart(cart, cartOpen)}
+      ${renderCart(cart, cartOpen, paymentMethod)}
     `;
 
     this.bindEvents();
@@ -240,6 +472,11 @@ const App = {
     document.getElementById('btn-login')?.addEventListener('click', () => this.setState({ modal: 'login' }));
     document.getElementById('btn-register')?.addEventListener('click', () => this.setState({ modal: 'register' }));
     document.getElementById('btn-logout')?.addEventListener('click', () => this.logout());
+    document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      localStorage.setItem('ps_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+      this.render();
+    });
     document.getElementById('btn-cart')?.addEventListener('click', () => this.setState({ cartOpen: true }));
 
     // Cart sidebar
@@ -250,6 +487,59 @@ const App = {
         this.removeFromCart(+btn.dataset.removeCart, btn.dataset.type);
       });
     });
+    document.querySelectorAll('[data-cart-quantity]').forEach(btn => {
+      btn.addEventListener('click', () => this.changeCartQuantity(+btn.dataset.cartQuantity, btn.dataset.type, +btn.dataset.change));
+    });
+    document.querySelectorAll('[data-payment-method]').forEach(btn => {
+      btn.addEventListener('click', () => this.setState({ paymentMethod: btn.dataset.paymentMethod }));
+    });
+
+    // Formateo y detección de tarjeta interactiva
+    const cardNumInput = document.getElementById('card-number');
+    const cardExpInput = document.getElementById('card-expiry');
+    const cardCvvInput = document.getElementById('card-cvv');
+    const visaBadge = document.getElementById('brand-badge-visa');
+    const mcBadge = document.getElementById('brand-badge-mc');
+
+    if (cardNumInput) {
+      cardNumInput.addEventListener('input', e => {
+        const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+        const formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+        e.target.value = formatted;
+
+        if (raw.startsWith('4')) {
+          visaBadge?.classList.add('is-active');
+          visaBadge?.classList.remove('is-dimmed');
+          mcBadge?.classList.add('is-dimmed');
+          mcBadge?.classList.remove('is-active');
+        } else if (raw.startsWith('5') || raw.startsWith('2')) {
+          mcBadge?.classList.add('is-active');
+          mcBadge?.classList.remove('is-dimmed');
+          visaBadge?.classList.add('is-dimmed');
+          visaBadge?.classList.remove('is-active');
+        } else {
+          visaBadge?.classList.remove('is-active', 'is-dimmed');
+          mcBadge?.classList.remove('is-active', 'is-dimmed');
+        }
+      });
+    }
+
+    if (cardExpInput) {
+      cardExpInput.addEventListener('input', e => {
+        const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+        if (raw.length >= 3) {
+          e.target.value = raw.slice(0, 2) + '/' + raw.slice(2);
+        } else {
+          e.target.value = raw;
+        }
+      });
+    }
+
+    if (cardCvvInput) {
+      cardCvvInput.addEventListener('input', e => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+      });
+    }
 
     // Search
     document.getElementById('search-form')?.addEventListener('submit', e => {
@@ -280,8 +570,14 @@ const App = {
         const item = type === 'game'
           ? GAMES.find(g => g.id === id)
           : CONSOLAS.find(c => c.id === id);
-        if (item) this.addToCart({ ...item, type });
+        if (item) this.addToCart({ ...item, title: item.title || item.name, type, stock: this.getStock(id, type) });
       });
+    });
+    document.getElementById('catalog-sort')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, sort: event.target.value } }));
+    document.getElementById('catalog-price')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, price: event.target.value } }));
+    document.getElementById('catalog-deals')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, dealsOnly: event.target.checked } }));
+    document.querySelectorAll('[data-favorite]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); this.toggleFavorite(+btn.dataset.favorite, btn.dataset.type); });
     });
 
     // Ver detalle de producto (click en la tarjeta, evitando el botón de carrito)
@@ -347,6 +643,65 @@ const App = {
           document.getElementById('login-pass').value = acc.password;
         }
       });
+    });
+
+    // Solicitud de cliente para ser vendedor
+    document.querySelectorAll('[data-request-vendor]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (this.state.currentUser?.role !== 'client') return;
+        if (this.getSellerRequestForUser(this.state.currentUser.id)) {
+          showToast('⏳ Ya tienes una solicitud pendiente.');
+          return;
+        }
+        this.setState({ modal: 'seller-request' });
+      });
+    });
+
+    document.getElementById('seller-request-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const terms = document.getElementById('seller-terms');
+      const imageInput = document.getElementById('seller-product-image');
+      const imageFile = imageInput?.files?.[0];
+
+      if (!terms?.checked) {
+        showToast('⚠️ Debes aceptar los derechos y condiciones.');
+        return;
+      }
+      if (!imageFile) {
+        showToast('⚠️ Debes subir una foto del producto.');
+        return;
+      }
+      if (!imageFile.type.startsWith('image/')) {
+        showToast('⚠️ El archivo debe ser una imagen.');
+        return;
+      }
+      if (imageFile.size > 5 * 1024 * 1024) {
+        showToast('⚠️ La imagen no puede superar los 5 MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.submitSellerRequest({
+          phone: document.getElementById('seller-phone').value.trim(),
+          saleType: document.getElementById('seller-sale-type').value,
+          productTitle: document.getElementById('seller-product-title').value.trim(),
+          productDescription: document.getElementById('seller-product-description').value.trim(),
+          productPrice: document.getElementById('seller-product-price').value,
+          productStock: document.getElementById('seller-product-stock').value,
+          productImage: reader.result
+        });
+      };
+      reader.readAsDataURL(imageFile);
+    });
+
+    document.querySelectorAll('[data-approve-seller]').forEach(btn => {
+      btn.addEventListener('click', () => this.approveSellerRequest(+btn.dataset.approveSeller));
+    });
+
+    document.querySelectorAll('[data-reject-seller]').forEach(btn => {
+      btn.addEventListener('click', () => this.rejectSellerRequest(+btn.dataset.rejectSeller));
     });
 
     // Vendor
@@ -434,9 +789,10 @@ const App = {
 
     // Checkout
     document.getElementById('btn-checkout')?.addEventListener('click', () => {
-      if (this.state.cart.length === 0) return;
-      showToast('✅ ¡Compra realizada! Gracias por tu compra.');
-      this.setState({ cart: [], cartOpen: false });
+      this.createOrder();
+    });
+    document.querySelectorAll('[data-order-status]').forEach(sel => {
+      sel.addEventListener('change', () => this.updateOrderStatus(sel.dataset.orderStatus, sel.value));
     });
   },
 
