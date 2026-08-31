@@ -5,25 +5,56 @@ const App = {
   state: {
     page: 'store',
     currentUser: null,
-    modal: null, // 'login' | 'register' | 'product' | null
+    modal: null, // 'login' | 'register' | 'product' | 'order-success' | 'receipt' | null
+    modalOrder: null,
     cart: [],
     cartOpen: false,
-    users: JSON.parse(localStorage.getItem('ps_users') || 'null') || [...USERS],
+    paymentMethod: localStorage.getItem('ps_payment_method') || 'card',
+    favorites: JSON.parse(localStorage.getItem('ps_favorites') || '{}'),
+    orders: JSON.parse(localStorage.getItem('ps_orders') || '[]'),
+    notifications: JSON.parse(localStorage.getItem('ps_notifications') || '[]'),
+    stockByProduct: JSON.parse(localStorage.getItem('ps_stock_by_product') || 'null') || Object.fromEntries([
+      ...GAMES.map((item, index) => [`game-${item.id}`, 25 + (index % 4) * 10]),
+      ...CONSOLAS.map((item, index) => [`consola-${item.id}`, 8 + index * 3])
+    ]),
+    users: (() => {
+      const saved = JSON.parse(localStorage.getItem('ps_users') || '[]');
+      const base = (typeof USERS !== 'undefined') ? [...USERS] : [];
+      saved.forEach(s => {
+        if (!base.some(b => (b.email && s.email && b.email.toLowerCase() === s.email.toLowerCase()) || (b.username && s.username && b.username.toLowerCase() === s.username.toLowerCase()))) {
+          base.push(s);
+        }
+      });
+      return base;
+    })(),
     searchQuery: '',
     activeGenre: 'todos',
+    catalogFilters: { sort: 'featured', price: 'all', dealsOnly: false },
     activeBrand: 'todos',
     vendorProducts: JSON.parse(localStorage.getItem('ps_vendor_products') || 'null') || [...VENDOR_PRODUCTS],
     vendorSales: [...VENDOR_SALES],
     selectedProduct: null, // { id, type }
+    productTab: 'desc', // 'desc' | 'specs' | 'reviews'
+    pixelBotOpen: false,
+    pixelBotMessages: [],
+    pixelBotTyping: false,
     reviews: JSON.parse(localStorage.getItem('ps_reviews') || 'null') || JSON.parse(JSON.stringify(REVIEWS_SEED)),
+    sellerRequests: JSON.parse(localStorage.getItem('ps_seller_requests') || '[]'),
   },
 
   init() {
+    // Limpieza de datos de una versión anterior que incluía cupones.
+    localStorage.removeItem('ps_active_coupon');
+    // Restaurar tema
+    if (localStorage.getItem('ps_theme') === 'light') {
+      document.body.classList.add('light');
+    }
     // Detectar página actual desde la URL
     const path = window.location.pathname.toLowerCase();
     if (path.includes('consolas')) this.state.page = 'consolas';
     else if (path.includes('admin')) this.state.page = 'admin';
     else if (path.includes('vendor')) this.state.page = 'vendor';
+    else if (path.includes('perfil')) this.state.page = 'profile';
     else this.state.page = 'store';
 
     // Restaurar sesión
@@ -46,6 +77,13 @@ const App = {
     if ('cart' in patch) {
       localStorage.setItem('ps_cart', JSON.stringify(this.state.cart));
     }
+    if ('paymentMethod' in patch) {
+      localStorage.setItem('ps_payment_method', this.state.paymentMethod);
+    }
+    if ('stockByProduct' in patch) localStorage.setItem('ps_stock_by_product', JSON.stringify(this.state.stockByProduct));
+    ['favorites', 'orders', 'notifications'].forEach(key => {
+      if (key in patch) localStorage.setItem(`ps_${key}`, JSON.stringify(this.state[key]));
+    });
     this.render();
   },
 
@@ -58,7 +96,8 @@ const App = {
       store:    'index.html',
       consolas: 'consolas.html',
       admin:    'admin.html',
-      vendor:   'vendor.html'
+      vendor:   'vendor.html',
+      profile:  'perfil.html'
     };
     window.location.href = urls[page] || 'index.html';
   },
@@ -112,25 +151,183 @@ const App = {
   // Carrito
   addToCart(item) {
     const existing = this.state.cart.find(c => c.id === item.id && c.type === item.type);
+    const stock = this.getStock(item.id, item.type);
+    if (existing && existing.qty >= stock) {
+      showToast('No hay más unidades disponibles de este producto.');
+      return;
+    }
     let cart;
     if (existing) {
       cart = this.state.cart.map(c =>
         c.id === item.id && c.type === item.type ? { ...c, qty: c.qty + 1 } : c
       );
     } else {
-      cart = [...this.state.cart, { ...item, qty: 1 }];
+      cart = [...this.state.cart, { ...item, stock, qty: 1 }];
     }
     this.setState({ cart });
     showToast('🛒 Agregado: ' + item.title);
+    setTimeout(() => {
+      const badge = document.querySelector('.cart-count-badge');
+      if (badge) {
+        badge.classList.remove('bounce');
+        void badge.offsetWidth;
+        badge.classList.add('bounce');
+      }
+    }, 10);
   },
 
   removeFromCart(id, type) {
     this.setState({ cart: this.state.cart.filter(c => !(c.id === id && c.type === type)) });
   },
 
-  cartTotal() {
+  changeCartQuantity(id, type, change) {
+    const item = this.state.cart.find(c => c.id === id && c.type === type);
+    if (!item) return;
+    const qty = Math.max(0, Math.min(item.stock ?? 99, item.qty + change));
+    if (qty === 0) return this.removeFromCart(id, type);
+    this.setState({ cart: this.state.cart.map(c => c.id === id && c.type === type ? { ...c, qty } : c) });
+  },
+
+  getStock(id, type) {
+    return this.state.stockByProduct[`${type}-${id}`] ?? 0;
+  },
+
+  isFavorite(id, type) {
+    const userId = this.state.currentUser?.id;
+    return !!userId && (this.state.favorites[userId] || []).includes(`${type}-${id}`);
+  },
+
+  openProduct(id, type) {
+    this.setState({ selectedProduct: { id, type }, modal: 'product', productTab: 'desc' });
+  },
+
+  toggleFavorite(id, type) {
+    if (!this.state.currentUser) { this.setState({ modal: 'login' }); return; }
+    const userId = this.state.currentUser.id;
+    const key = `${type}-${id}`;
+    const current = this.state.favorites[userId] || [];
+    const list = current.includes(key) ? current.filter(item => item !== key) : [...current, key];
+    this.setState({ favorites: { ...this.state.favorites, [userId]: list } });
+    showToast(current.includes(key) ? 'Favorito eliminado' : '❤ Guardado en favoritos');
+  },
+
+  createOrder() {
+    if (!this.state.currentUser) { this.setState({ modal: 'login', cartOpen: false }); return; }
+    if (!this.state.cart.length) return;
+
+    // Validación de campos de tarjeta cuando se paga con tarjeta
+    if (this.state.paymentMethod === 'card') {
+      const nameInput = document.getElementById('card-holder-name');
+      const numInput = document.getElementById('card-number');
+      const expInput = document.getElementById('card-expiry');
+      const cvvInput = document.getElementById('card-cvv');
+
+      const name = nameInput?.value?.trim() || '';
+      const num = numInput?.value?.replace(/\s/g, '') || '';
+      const exp = expInput?.value?.trim() || '';
+      const cvv = cvvInput?.value?.trim() || '';
+
+      if (!name) {
+        showToast('⚠️ Ingresa el nombre del titular de la tarjeta.');
+        nameInput?.focus();
+        return;
+      }
+      if (num.length < 15 || !/^\d+$/.test(num)) {
+        showToast('⚠️ Ingresa un número de tarjeta válido (16 dígitos).');
+        numInput?.focus();
+        return;
+      }
+      if (exp.length !== 5 || !exp.includes('/')) {
+        showToast('⚠️ Ingresa una fecha de expiración válida (MM/AA).');
+        expInput?.focus();
+        return;
+      }
+      const [m] = exp.split('/');
+      const monthNum = parseInt(m, 10);
+      if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        showToast('⚠️ Mes de expiración inválido (debe ser del 01 al 12).');
+        expInput?.focus();
+        return;
+      }
+      if (cvv.length < 3 || !/^\d+$/.test(cvv)) {
+        showToast('⚠️ Ingresa un código CVV válido (3 o 4 dígitos).');
+        cvvInput?.focus();
+        return;
+      }
+    }
+
+    const subtotal = this.cartSubtotal();
+    const total = subtotal;
+    if (this.state.cart.some(item => item.qty > this.getStock(item.id, item.type))) {
+      showToast('El stock cambió. Revisa las cantidades de tu carrito.');
+      return;
+    }
+    const now = new Date().toISOString();
+
+    // Generar claves de activación únicas para cada producto
+    const generateDigitalKey = (item) => {
+      const hex1 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const hex2 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const hex3 = Math.random().toString(36).substring(2, 6).toUpperCase();
+      if (item.type === 'consola') {
+        const brand = (item.brand || 'PIXEL').substring(0, 3).toUpperCase();
+        return `SN-${brand}-${Math.floor(10000000 + Math.random() * 90000000)}`;
+      }
+      return `PIXEL-${hex1}-${hex2}-${hex3}`;
+    };
+
+    const orderItems = this.state.cart.map(item => ({
+      productId: `${item.type}-${item.id}`,
+      title: item.title || item.name,
+      image: item.image,
+      qty: item.qty,
+      unitPrice: item.price,
+      vendorId: item.vendorId || 2,
+      key: generateDigitalKey(item)
+    }));
+
+    const order = {
+      id: `PS-${Date.now().toString().slice(-7)}`,
+      buyerId: this.state.currentUser.id,
+      items: orderItems,
+      pricing: { subtotal, discount: 0, total },
+      payment: { method: this.state.paymentMethod, status: 'paid' },
+      status: 'paid',
+      createdAt: now,
+      updatedAt: now
+    };
+    const notification = { id: Date.now(), userId: this.state.currentUser.id, text: `¡Pedido ${order.id} completado con éxito! Tus claves ya están listas para canjear.`, read: false, createdAt: now };
+    const stockByProduct = { ...this.state.stockByProduct };
+    this.state.cart.forEach(item => { const key = `${item.type}-${item.id}`; stockByProduct[key] = Math.max(0, (stockByProduct[key] ?? 0) - item.qty); });
+    
+    this.setState({
+      orders: [order, ...this.state.orders],
+      notifications: [notification, ...this.state.notifications],
+      stockByProduct,
+      cart: [],
+      cartOpen: false,
+      modal: 'order-success',
+      modalOrder: order
+    });
+    showToast(`🎉 ¡Pedido #${order.id} confirmado! Claves generadas.`);
+  },
+
+  updateOrderStatus(id, status) {
+    const order = this.state.orders.find(item => item.id === id);
+    if (!order) return;
+    const labels = { pending_payment: 'pendiente de pago', paid: 'pagado', processing: 'en preparación', ready: 'listo', delivered: 'entregado', cancelled: 'cancelado' };
+    const updatedAt = new Date().toISOString();
+    const orders = this.state.orders.map(item => item.id === id ? { ...item, status, updatedAt } : item);
+    const notification = { id: Date.now(), userId: order.buyerId, text: `Tu pedido ${id} ahora está ${labels[status] || status}.`, read: false, createdAt: updatedAt };
+    this.setState({ orders, notifications: [notification, ...this.state.notifications] });
+    showToast('Estado del pedido actualizado.');
+  },
+
+  cartSubtotal() {
     return this.state.cart.reduce((sum, c) => sum + c.price * c.qty, 0);
   },
+
+  cartTotal() { return this.cartSubtotal(); },
 
   // Detalle de producto y reseñas
   openProduct(id, type) {
@@ -152,12 +349,132 @@ const App = {
       user: this.state.currentUser.fullName,
       rating,
       comment,
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      status: this.state.currentUser.role === 'admin' ? 'approved' : 'pending'
     };
     const updated = { ...this.state.reviews, [key]: [...list, newReview] };
     localStorage.setItem('ps_reviews', JSON.stringify(updated));
     this.setState({ reviews: updated });
     showToast('✅ ¡Gracias por tu reseña!');
+  },
+
+  // Solicitudes de cliente para convertirse en vendedor
+  getSellerRequestForUser(userId) {
+    return this.state.sellerRequests.find(r => r.userId === userId && r.status === 'pendiente');
+  },
+
+  submitSellerRequest(data) {
+    const user = this.state.currentUser;
+    if (!user || user.role !== 'client') return 'Solo los clientes pueden solicitar ser vendedores.';
+    if (this.getSellerRequestForUser(user.id)) return 'Ya tienes una solicitud pendiente.';
+
+    const request = {
+      id: Date.now(),
+      userId: user.id,
+      applicantName: user.fullName,
+      email: user.email,
+      phone: data.phone,
+      saleType: data.saleType,
+      product: {
+        title: data.productTitle,
+        description: data.productDescription,
+        price: Number(data.productPrice),
+        stock: Number(data.productStock),
+        image: data.productImage
+      },
+      acceptedTerms: true,
+      status: 'pendiente',
+      createdAt: new Date().toISOString()
+    };
+
+    const sellerRequests = [...this.state.sellerRequests, request];
+    localStorage.setItem('ps_seller_requests', JSON.stringify(sellerRequests));
+    this.setState({ sellerRequests, modal: null });
+    showToast('📨 Solicitud enviada al administrador.');
+  },
+
+  approveSellerRequest(id) {
+    if (this.state.currentUser?.role !== 'admin') return;
+    const request = this.state.sellerRequests.find(r => r.id === id && r.status === 'pendiente');
+    if (!request) return;
+
+    const users = this.state.users.map(u =>
+      u.id === request.userId ? { ...u, role: 'vendor' } : u
+    );
+    const approvedUser = users.find(u => u.id === request.userId);
+    const sellerRequests = this.state.sellerRequests.map(r =>
+      r.id === id ? { ...r, status: 'aprobada', reviewedAt: new Date().toISOString() } : r
+    );
+
+    const nextId = this.state.vendorProducts.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0) + 1;
+    const vendorProducts = [
+      ...this.state.vendorProducts,
+      {
+        id: nextId,
+        title: request.product.title,
+        price: request.product.price,
+        stock: request.product.stock,
+        image: request.product.image,
+        description: request.product.description,
+        category: request.saleType,
+        vendorId: request.userId
+      }
+    ];
+
+    const notifications = [
+      {
+        id: Date.now(),
+        userId: request.userId,
+        text: '✅ Tu solicitud para ser vendedor fue aprobada. Ya puedes acceder a Mi Panel.',
+        read: false,
+        createdAt: new Date().toISOString()
+      },
+      ...this.state.notifications
+    ];
+
+    localStorage.setItem('ps_seller_requests', JSON.stringify(sellerRequests));
+    localStorage.setItem('ps_users', JSON.stringify(users));
+    localStorage.setItem('ps_vendor_products', JSON.stringify(vendorProducts));
+
+    const patch = { sellerRequests, users, vendorProducts, notifications };
+    if (approvedUser) {
+      localStorage.setItem('ps_session', JSON.stringify(approvedUser));
+    }
+
+    this.setState(patch);
+    showToast('✅ Solicitud aprobada. El cliente ahora es vendedor.');
+  },
+
+  rejectSellerRequest(id) {
+    if (this.state.currentUser?.role !== 'admin') return;
+    const reason = prompt('Motivo del rechazo (opcional):', '');
+    if (reason === null) return;
+
+    const request = this.state.sellerRequests.find(r => r.id === id && r.status === 'pendiente');
+    if (!request) return;
+
+    const sellerRequests = this.state.sellerRequests.map(r =>
+      r.id === id
+        ? { ...r, status: 'rechazada', rejectionReason: reason.trim(), reviewedAt: new Date().toISOString() }
+        : r
+    );
+
+    const notifications = [
+      {
+        id: Date.now(),
+        userId: request.userId,
+        text: reason.trim()
+          ? `❌ Tu solicitud para ser vendedor fue rechazada: ${reason.trim()}`
+          : '❌ Tu solicitud para ser vendedor fue rechazada.',
+        read: false,
+        createdAt: new Date().toISOString()
+      },
+      ...this.state.notifications
+    ];
+
+    localStorage.setItem('ps_seller_requests', JSON.stringify(sellerRequests));
+    this.setState({ sellerRequests, notifications });
+    showToast('Solicitud rechazada.');
   },
 
   // Gestión de productos (vendedor y administrador)
@@ -178,10 +495,14 @@ const App = {
     if (priceStr === null) return;
     const price = parseFloat(priceStr);
     if (isNaN(price) || price <= 0) { alert('Precio inválido.'); return; }
-    const updated = this.state.vendorProducts.map(p => p.id === id ? { ...p, price } : p);
+    const stockStr = prompt(`Stock disponible para "${product.title}":`, product.stock);
+    if (stockStr === null) return;
+    const stock = parseInt(stockStr, 10);
+    if (!Number.isInteger(stock) || stock < 0) { alert('Stock inválido.'); return; }
+    const updated = this.state.vendorProducts.map(p => p.id === id ? { ...p, price, stock } : p);
     localStorage.setItem('ps_vendor_products', JSON.stringify(updated));
     this.setState({ vendorProducts: updated });
-    showToast('✅ Precio actualizado');
+    showToast('✅ Precio y stock actualizados');
   },
 
   // Gestión de usuarios (administrador)
@@ -195,9 +516,92 @@ const App = {
     showToast(target.banned ? '✅ Usuario reactivado' : '🚫 Usuario baneado');
   },
 
+  // PixelBot (Asistente Gamer Virtual)
+  handlePixelBotMessage(userText) {
+    if (!userText || !userText.trim()) return;
+    const text = userText.trim();
+    const currentMsgs = this.state.pixelBotMessages || [];
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const updatedMsgs = [...currentMsgs, { sender: 'user', text, time }];
+    this.setState({ pixelBotMessages: updatedMsgs, pixelBotTyping: true });
+
+    setTimeout(() => {
+      const response = this.generateBotResponse(text);
+      this.setState({
+        pixelBotMessages: [...this.state.pixelBotMessages, { sender: 'bot', ...response, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }],
+        pixelBotTyping: false
+      });
+      setTimeout(() => {
+        const body = document.getElementById('pixelbot-messages-body');
+        if (body) body.scrollTop = body.scrollHeight;
+      }, 50);
+    }, 450);
+  },
+
+  generateBotResponse(query) {
+    const q = query.toLowerCase();
+
+    // 1. Ofertas / Descuentos / Precios bajos
+    if (q.includes('oferta') || q.includes('descuento') || q.includes('barato') || q.includes('menos de') || q.includes('20') || q.includes('30') || q.includes('15') || q.includes('ahorro')) {
+      const cheapGames = GAMES.filter(g => (g.discount && g.discount > 0) || g.price <= 25).slice(0, 3);
+      return {
+        text: '🔥 ¡Aquí tienes las mejores ofertas destacadas con entrega inmediata y hasta un 85% de descuento!',
+        products: cheapGames.map(g => ({ id: g.id, title: g.title, price: g.price, originalPrice: g.originalPrice, discount: g.discount, image: g.image, type: 'game' }))
+      };
+    }
+
+    // 2. Requisitos de PC / RAM
+    if (q.includes('requisito') || q.includes('ram') || q.includes('8gb') || q.includes('16gb') || q.includes('pc') || q.includes('grafica') || q.includes('correr') || q.includes('corre')) {
+      const lowReqGames = GAMES.filter(g => g.id === 2 || g.id === 4 || g.id === 10 || g.id === 12);
+      return {
+        text: '💻 Si buscas juegos súper optimizados que corran fluido con **8GB de RAM o tarjetas gráficas de gama media/baja**, te recomiendo estos títulos:',
+        products: lowReqGames.slice(0, 3).map(g => ({ id: g.id, title: g.title, price: g.price, image: g.image, type: 'game' }))
+      };
+    }
+
+    // 3. Géneros: RPG / Aventura / Acción
+    if (q.includes('rpg') || q.includes('aventura') || q.includes('accion') || q.includes('historia') || q.includes('mundo abierto')) {
+      const rpgs = GAMES.filter(g => g.genres.includes('rpg') || g.genres.includes('aventura')).slice(0, 3);
+      return {
+        text: '🗡️ ¡Excelente elección! Si buscas mundos abiertos gigantescos, narrativa profunda y combate épico, estos son los más aclamados:',
+        products: rpgs.map(g => ({ id: g.id, title: g.title, price: g.price, image: g.image, type: 'game' }))
+      };
+    }
+
+    // 4. Consolas y Hardware
+    if (q.includes('consola') || q.includes('ps5') || q.includes('playstation') || q.includes('xbox') || q.includes('switch') || q.includes('nintendo') || q.includes('hardware')) {
+      return {
+        text: '🕹️ Contamos con consolas oficiales con garantía PixelStore y entrega garantizada. Aquí tienes las más populares:',
+        products: CONSOLAS.slice(0, 3).map(c => ({ id: c.id, title: c.name, price: c.price, image: c.image, type: 'consola' }))
+      };
+    }
+
+    // 5. Claves digitales / Comprobantes / Pagos
+    if (q.includes('clave') || q.includes('canjear') || q.includes('ticket') || q.includes('pdf') || q.includes('comprobante') || q.includes('tarjeta') || q.includes('pagar') || q.includes('comprar')) {
+      return {
+        text: '🔑 **¿Cómo funciona la compra en PixelStore?**\n\n1. Elige tu juego o consola y agrégalo al carrito.\n2. Completa el pago con tarjeta (puedes usar la tarjeta de prueba con 1 clic).\n3. Recibirás tu **clave digital única** al instante y podrás descargar tu **Ticket/Factura PDF** oficial.'
+      };
+    }
+
+    // 6. Búsqueda por coincidencia de nombre
+    const matched = GAMES.filter(g => g.title.toLowerCase().includes(q) || g.description.toLowerCase().includes(q));
+    if (matched.length > 0) {
+      return {
+        text: `🎮 Encontré estos títulos relacionados con "${query}":`,
+        products: matched.slice(0, 3).map(g => ({ id: g.id, title: g.title, price: g.price, image: g.image, type: 'game' }))
+      };
+    }
+
+    // Respuesta amigable por defecto
+    return {
+      text: '🤖 ¡Te ayudo con gusto! Puedes preguntarme cosas como:\n\n• *"Juegos en oferta por menos de $20"*\n• *"Juegos que corran en 8GB de RAM"*\n• *"Recomiéndame los mejores RPGs"*\n• *"¿Cómo canjeo mi clave digital?"*\n\n¿Qué tipo de juego o consola te interesa hoy?'
+    };
+  },
+
   // Render principal
   render() {
-    const { page, currentUser, modal, cart, cartOpen, selectedProduct } = this.state;
+    const { page, currentUser, modal, cart, cartOpen, paymentMethod, selectedProduct, favorites, orders, notifications } = this.state;
 
     document.getElementById('app').innerHTML = `
       ${renderHeader(this.state)}
@@ -206,18 +610,25 @@ const App = {
         ${page === 'consolas' ? renderConsolas(this.state) : ''}
         ${page === 'admin' && currentUser?.role === 'admin' ? renderAdmin(this.state) : ''}
         ${page === 'vendor' && currentUser?.role === 'vendor' ? renderVendor(this.state) : ''}
+        ${page === 'profile' && currentUser ? renderProfile({ currentUser, favorites, orders, notifications, sellerRequests: this.state.sellerRequests }) : ''}
         ${page === 'admin' && currentUser?.role !== 'admin' ? `<div style="padding:80px 24px;text-align:center;color:var(--muted)"><p>Acceso restringido.</p></div>` : ''}
       </main>
       ${renderFooter()}
       ${modal === 'login' ? renderLoginModal() : ''}
       ${modal === 'register' ? renderRegisterModal() : ''}
+      ${modal === 'seller-request' ? renderSellerRequestModal() : ''}
       ${modal === 'product' && selectedProduct ? renderProductModal(
         this.getProductById(selectedProduct.id, selectedProduct.type),
         selectedProduct.type,
         this.getReviews(selectedProduct.id, selectedProduct.type),
-        currentUser
+        currentUser,
+        favorites,
+        this.state.productTab || 'desc'
       ) : ''}
-      ${renderCart(cart, cartOpen)}
+      ${modal === 'order-success' ? renderOrderSuccessModal(this.state.modalOrder || orders[0]) : ''}
+      ${modal === 'receipt' ? renderReceiptModal(this.state.modalOrder || orders[0], currentUser) : ''}
+      ${renderCart(cart, cartOpen, paymentMethod)}
+      ${renderPixelBot(this.state)}
     `;
 
     this.bindEvents();
@@ -231,6 +642,11 @@ const App = {
     document.getElementById('btn-login')?.addEventListener('click', () => this.setState({ modal: 'login' }));
     document.getElementById('btn-register')?.addEventListener('click', () => this.setState({ modal: 'register' }));
     document.getElementById('btn-logout')?.addEventListener('click', () => this.logout());
+    document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      localStorage.setItem('ps_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+      this.render();
+    });
     document.getElementById('btn-cart')?.addEventListener('click', () => this.setState({ cartOpen: true }));
 
     // Cart sidebar
@@ -241,16 +657,185 @@ const App = {
         this.removeFromCart(+btn.dataset.removeCart, btn.dataset.type);
       });
     });
+    document.querySelectorAll('[data-cart-quantity]').forEach(btn => {
+      btn.addEventListener('click', () => this.changeCartQuantity(+btn.dataset.cartQuantity, btn.dataset.type, +btn.dataset.change));
+    });
+    document.querySelectorAll('[data-payment-method]').forEach(btn => {
+      btn.addEventListener('click', () => this.setState({ paymentMethod: btn.dataset.paymentMethod }));
+    });
 
-    // Search
+    // Formateo y detección de tarjeta interactiva
+    const cardNumInput = document.getElementById('card-number');
+    const cardExpInput = document.getElementById('card-expiry');
+    const cardCvvInput = document.getElementById('card-cvv');
+    const visaBadge = document.getElementById('brand-badge-visa');
+    const mcBadge = document.getElementById('brand-badge-mc');
+
+    if (cardNumInput) {
+      cardNumInput.addEventListener('input', e => {
+        const raw = e.target.value.replace(/\D/g, '').slice(0, 16);
+        const formatted = raw.match(/.{1,4}/g)?.join(' ') || raw;
+        e.target.value = formatted;
+
+        if (raw.startsWith('4')) {
+          visaBadge?.classList.add('is-active');
+          visaBadge?.classList.remove('is-dimmed');
+          mcBadge?.classList.add('is-dimmed');
+          mcBadge?.classList.remove('is-active');
+        } else if (raw.startsWith('5') || raw.startsWith('2')) {
+          mcBadge?.classList.add('is-active');
+          mcBadge?.classList.remove('is-dimmed');
+          visaBadge?.classList.add('is-dimmed');
+          visaBadge?.classList.remove('is-active');
+        } else {
+          visaBadge?.classList.remove('is-active', 'is-dimmed');
+          mcBadge?.classList.remove('is-active', 'is-dimmed');
+        }
+      });
+    }
+
+    if (cardExpInput) {
+      cardExpInput.addEventListener('input', e => {
+        const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
+        if (raw.length >= 3) {
+          e.target.value = raw.slice(0, 2) + '/' + raw.slice(2);
+        } else {
+          e.target.value = raw;
+        }
+      });
+    }
+
+    if (cardCvvInput) {
+      cardCvvInput.addEventListener('input', e => {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+      });
+    }
+
+    // Botón de autocompletar tarjeta de prueba
+    document.getElementById('btn-fill-demo-card')?.addEventListener('click', () => {
+      const nameEl = document.getElementById('card-holder-name');
+      const numEl = document.getElementById('card-number');
+      const expEl = document.getElementById('card-expiry');
+      const cvvEl = document.getElementById('card-cvv');
+      if (nameEl) nameEl.value = 'Juan Pérez';
+      if (numEl) {
+        numEl.value = '4532 1122 3344 5566';
+        const visaBadge = document.getElementById('brand-badge-visa');
+        const mcBadge = document.getElementById('brand-badge-mc');
+        visaBadge?.classList.add('is-active');
+        visaBadge?.classList.remove('is-dimmed');
+        mcBadge?.classList.add('is-dimmed');
+        mcBadge?.classList.remove('is-active');
+      }
+      if (expEl) expEl.value = '12/28';
+      if (cvvEl) cvvEl.value = '789';
+      showToast('💳 Tarjeta de prueba aplicada.');
+    });
+
+    // Live Search con Autocompletado en Vivo
+    const searchInput = document.getElementById('search-input');
+    const autocompleteBox = document.getElementById('search-autocomplete-box');
+
+    if (searchInput && autocompleteBox) {
+      searchInput.addEventListener('input', e => {
+        const query = e.target.value.trim().toLowerCase();
+        if (!query) {
+          autocompleteBox.style.display = 'none';
+          autocompleteBox.innerHTML = '';
+          return;
+        }
+
+        const escapeStr = str => (str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+
+        const matchedGames = GAMES.filter(g =>
+          g.title.toLowerCase().includes(query) ||
+          g.genreLabel.toLowerCase().includes(query) ||
+          (g.platform && g.platform.toLowerCase().includes(query))
+        ).slice(0, 4);
+
+        const matchedConsoles = CONSOLAS.filter(c =>
+          c.name.toLowerCase().includes(query) ||
+          c.brand.toLowerCase().includes(query) ||
+          (c.tagline && c.tagline.toLowerCase().includes(query))
+        ).slice(0, 3);
+
+        if (!matchedGames.length && !matchedConsoles.length) {
+          autocompleteBox.innerHTML = `
+            <div class="search-no-results">
+              🔍 No se encontraron productos para "<strong>${escapeStr(query)}</strong>"
+            </div>
+          `;
+          autocompleteBox.style.display = 'block';
+          return;
+        }
+
+        let html = '';
+        if (matchedGames.length) {
+          html += `<div class="search-cat-title">🎮 Videojuegos</div>`;
+          html += matchedGames.map(game => `
+            <div class="search-result-item" data-autocomplete-select="game-${game.id}">
+              <img src="${game.image}" alt="${escapeStr(game.title)}" class="search-result-thumb">
+              <div class="search-result-info">
+                <div class="search-result-title">${escapeStr(game.title)}</div>
+                <div class="search-result-meta">${escapeStr(game.genreLabel)} · ${escapeStr(game.platform)}</div>
+              </div>
+              <div class="search-result-pricing">
+                <div class="search-result-price">$${game.price.toFixed(2)}</div>
+                ${game.discount ? `<span class="search-result-badge">-${game.discount}%</span>` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        if (matchedConsoles.length) {
+          html += `<div class="search-cat-title">🕹️ Consolas & Hardware</div>`;
+          html += matchedConsoles.map(con => `
+            <div class="search-result-item" data-autocomplete-select="consola-${con.id}">
+              <img src="${con.image}" alt="${escapeStr(con.name)}" class="search-result-thumb">
+              <div class="search-result-info">
+                <div class="search-result-title">${escapeStr(con.name)}</div>
+                <div class="search-result-meta">${escapeStr(con.brand.toUpperCase())} · ${escapeStr(con.storage || 'Edición Oficial')}</div>
+              </div>
+              <div class="search-result-pricing">
+                <div class="search-result-price">$${con.price.toFixed(2)}</div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        autocompleteBox.innerHTML = html;
+        autocompleteBox.style.display = 'block';
+
+        // Click en cualquier resultado para abrir el producto directamente
+        autocompleteBox.querySelectorAll('[data-autocomplete-select]').forEach(item => {
+          item.addEventListener('click', () => {
+            const [type, idStr] = item.dataset.autocompleteSelect.split('-');
+            autocompleteBox.style.display = 'none';
+            searchInput.value = '';
+            this.openProduct(+idStr, type);
+          });
+        });
+      });
+
+      // Cerrar al presionar Escape o hacer clic fuera de la barra
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.search-wrapper-rel')) {
+          autocompleteBox.style.display = 'none';
+        }
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          autocompleteBox.style.display = 'none';
+        }
+      });
+    }
+
+    // Search submit
     document.getElementById('search-form')?.addEventListener('submit', e => {
       e.preventDefault();
       const q = document.getElementById('search-input')?.value?.trim();
+      if (autocompleteBox) autocompleteBox.style.display = 'none';
       if (q) this.setState({ page: 'store', activeGenre: 'todos', searchQuery: q });
-    });
-    document.getElementById('search-input')?.addEventListener('input', e => {
-      this.state.searchQuery = e.target.value;
-      if (!e.target.value) this.setState({ searchQuery: '' });
     });
 
     // Genre filter
@@ -271,14 +856,35 @@ const App = {
         const item = type === 'game'
           ? GAMES.find(g => g.id === id)
           : CONSOLAS.find(c => c.id === id);
-        if (item) this.addToCart({ ...item, type });
+        if (item) this.addToCart({ ...item, title: item.title || item.name, type, stock: this.getStock(id, type) });
       });
+    });
+
+    // Comprar ya (Direct checkout)
+    document.querySelectorAll('[data-buy-now]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = +btn.dataset.buyNow;
+        const type = btn.dataset.type || 'game';
+        const item = type === 'game'
+          ? GAMES.find(g => g.id === id)
+          : CONSOLAS.find(c => c.id === id);
+        if (item) {
+          this.addToCart({ ...item, title: item.title || item.name, type, stock: this.getStock(id, type) });
+          this.setState({ modal: null, cartOpen: true });
+        }
+      });
+    });
+    document.getElementById('catalog-sort')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, sort: event.target.value } }));
+    document.getElementById('catalog-price')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, price: event.target.value } }));
+    document.getElementById('catalog-deals')?.addEventListener('change', event => this.setState({ catalogFilters: { ...this.state.catalogFilters, dealsOnly: event.target.checked } }));
+    document.querySelectorAll('[data-favorite]').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); this.toggleFavorite(+btn.dataset.favorite, btn.dataset.type); });
     });
 
     // Ver detalle de producto (click en la tarjeta, evitando el botón de carrito)
     document.querySelectorAll('[data-view-product]').forEach(card => {
       card.addEventListener('click', e => {
-        if (e.target.closest('[data-add-cart]')) return;
+        if (e.target.closest('[data-add-cart]') || e.target.closest('[data-buy-now]')) return;
         const [type, idStr] = card.dataset.viewProduct.split('-');
         this.openProduct(+idStr, type);
       });
@@ -294,6 +900,7 @@ const App = {
           const filled = +s.dataset.starSelect <= val;
           s.textContent = filled ? '★' : '☆';
           s.style.color = filled ? '#f5a623' : 'var(--muted)';
+          s.style.textShadow = filled ? '0 0 12px rgba(245, 166, 35, 0.7)' : 'none';
         });
       });
     });
@@ -313,11 +920,79 @@ const App = {
     // Iniciar sesión desde el modal de producto (para dejar reseña)
     document.getElementById('btn-login-from-review')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 
+    // Pestañas (Tabs) de Detalle de Producto (Cambio instantáneo sin resetear el scroll)
+    document.querySelectorAll('[data-pdetail-tab]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const tab = btn.dataset.pdetailTab;
+        this.state.productTab = tab;
+
+        // Actualizar aspecto activo de los botones
+        document.querySelectorAll('[data-pdetail-tab]').forEach(b => {
+          b.classList.toggle('is-active', b.dataset.pdetailTab === tab);
+        });
+
+        // Alternar paneles de contenido sin perder la posición de scroll
+        const descPanel = document.getElementById('pdetail-panel-desc');
+        const specsPanel = document.getElementById('pdetail-panel-specs');
+        const reviewsPanel = document.getElementById('pdetail-panel-reviews');
+
+        if (descPanel) descPanel.style.display = (tab === 'desc') ? 'block' : 'none';
+        if (specsPanel) specsPanel.style.display = (tab === 'specs') ? 'block' : 'none';
+        if (reviewsPanel) reviewsPanel.style.display = (tab === 'reviews') ? 'block' : 'none';
+      });
+    });
+
+    // Copiar Clave Digital al Portapapeles
+    document.querySelectorAll('[data-copy-key]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.copyKey;
+        if (!key) return;
+        navigator.clipboard?.writeText(key).then(() => {
+          btn.textContent = '¡Copiado! ✓';
+          btn.style.background = '#a4d96f';
+          btn.style.color = '#111';
+          setTimeout(() => {
+            btn.textContent = 'Copiar Clave';
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 2500);
+          showToast('📋 ¡Clave copiada al portapapeles!');
+        }).catch(() => {
+          showToast(`Clave: ${key}`);
+        });
+      });
+    });
+
+    // Ver Comprobante y Claves desde Historial de Pedidos en Perfil
+    document.querySelectorAll('[data-view-order-receipt]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const orderId = btn.dataset.viewOrderReceipt;
+        const ord = this.state.orders.find(o => o.id === orderId);
+        if (ord) {
+          this.setState({ modal: 'receipt', modalOrder: ord });
+        }
+      });
+    });
+
+    // Imprimir Comprobante desde Modal de Compra Exitosa
+    document.querySelectorAll('[data-print-receipt]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const orderId = btn.dataset.printReceipt;
+        const ord = this.state.orders.find(o => o.id === orderId);
+        if (ord) {
+          this.setState({ modal: 'receipt', modalOrder: ord });
+        }
+      });
+    });
+
     // Modals
     document.getElementById('modal-backdrop')?.addEventListener('click', e => {
       if (e.target === document.getElementById('modal-backdrop')) this.setState({ modal: null });
     });
     document.getElementById('btn-close-modal')?.addEventListener('click', () => this.setState({ modal: null }));
+    document.getElementById('btn-close-modal-alt')?.addEventListener('click', () => this.setState({ modal: null }));
+    document.getElementById('btn-close-modal-ticket')?.addEventListener('click', () => this.setState({ modal: null }));
     document.getElementById('btn-switch-register')?.addEventListener('click', () => this.setState({ modal: 'register' }));
     document.getElementById('btn-switch-login')?.addEventListener('click', () => this.setState({ modal: 'login' }));
 
@@ -338,6 +1013,65 @@ const App = {
           document.getElementById('login-pass').value = acc.password;
         }
       });
+    });
+
+    // Solicitud de cliente para ser vendedor
+    document.querySelectorAll('[data-request-vendor]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (this.state.currentUser?.role !== 'client') return;
+        if (this.getSellerRequestForUser(this.state.currentUser.id)) {
+          showToast('⏳ Ya tienes una solicitud pendiente.');
+          return;
+        }
+        this.setState({ modal: 'seller-request' });
+      });
+    });
+
+    document.getElementById('seller-request-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const terms = document.getElementById('seller-terms');
+      const imageInput = document.getElementById('seller-product-image');
+      const imageFile = imageInput?.files?.[0];
+
+      if (!terms?.checked) {
+        showToast('⚠️ Debes aceptar los derechos y condiciones.');
+        return;
+      }
+      if (!imageFile) {
+        showToast('⚠️ Debes subir una foto del producto.');
+        return;
+      }
+      if (!imageFile.type.startsWith('image/')) {
+        showToast('⚠️ El archivo debe ser una imagen.');
+        return;
+      }
+      if (imageFile.size > 5 * 1024 * 1024) {
+        showToast('⚠️ La imagen no puede superar los 5 MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.submitSellerRequest({
+          phone: document.getElementById('seller-phone').value.trim(),
+          saleType: document.getElementById('seller-sale-type').value,
+          productTitle: document.getElementById('seller-product-title').value.trim(),
+          productDescription: document.getElementById('seller-product-description').value.trim(),
+          productPrice: document.getElementById('seller-product-price').value,
+          productStock: document.getElementById('seller-product-stock').value,
+          productImage: reader.result
+        });
+      };
+      reader.readAsDataURL(imageFile);
+    });
+
+    document.querySelectorAll('[data-approve-seller]').forEach(btn => {
+      btn.addEventListener('click', () => this.approveSellerRequest(+btn.dataset.approveSeller));
+    });
+
+    document.querySelectorAll('[data-reject-seller]').forEach(btn => {
+      btn.addEventListener('click', () => this.rejectSellerRequest(+btn.dataset.rejectSeller));
     });
 
     // Vendor
@@ -425,9 +1159,54 @@ const App = {
 
     // Checkout
     document.getElementById('btn-checkout')?.addEventListener('click', () => {
-      if (this.state.cart.length === 0) return;
-      showToast('✅ ¡Compra realizada! Gracias por tu compra.');
-      this.setState({ cart: [], cartOpen: false });
+      this.createOrder();
+    });
+    document.querySelectorAll('[data-order-status]').forEach(sel => {
+      sel.addEventListener('change', () => this.updateOrderStatus(sel.dataset.orderStatus, sel.value));
+    });
+
+    // PixelBot (Asistente Gamer Virtual)
+    document.getElementById('btn-pixelbot-toggle')?.addEventListener('click', () => {
+      const willOpen = !this.state.pixelBotOpen;
+      this.setState({ pixelBotOpen: willOpen });
+      if (willOpen) {
+        setTimeout(() => {
+          document.getElementById('pixelbot-input')?.focus();
+          const body = document.getElementById('pixelbot-messages-body');
+          if (body) body.scrollTop = body.scrollHeight;
+        }, 60);
+      }
+    });
+
+    document.getElementById('btn-pixelbot-close')?.addEventListener('click', () => {
+      this.setState({ pixelBotOpen: false });
+    });
+
+    document.getElementById('btn-pixelbot-reset')?.addEventListener('click', () => {
+      this.setState({ pixelBotMessages: [], pixelBotTyping: false });
+    });
+
+    document.querySelectorAll('[data-bot-prompt]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const promptText = chip.dataset.botPrompt;
+        this.handlePixelBotMessage(promptText);
+      });
+    });
+
+    document.getElementById('pixelbot-form')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const input = document.getElementById('pixelbot-input');
+      const val = input?.value?.trim();
+      if (!val) return;
+      input.value = '';
+      this.handlePixelBotMessage(val);
+    });
+
+    document.querySelectorAll('[data-bot-view-product]').forEach(card => {
+      card.addEventListener('click', () => {
+        const [type, idStr] = card.dataset.botViewProduct.split('-');
+        this.openProduct(+idStr, type);
+      });
     });
   },
 

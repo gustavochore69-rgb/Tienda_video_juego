@@ -19,65 +19,252 @@
   <script>
     document.addEventListener('submit', async (e) => {
       const form = e.target;
-      
-      // Selectores específicos por tipo/nombre para evitar desfasamientos
-      const inputEmail = form.querySelector('input[type="email"], input[name="email"], input[name="correo"]');
-      const inputPassword = form.querySelector('input[type="password"], input[name="password"], input[name="contra"]');
+      if (!form) return;
 
-      // 1. EVALUAR SI ES FORMULARIO DE REGISTRO
-      const esFormularioRegistro = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('crear') || 
-                                   form.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]').length >= 3;
-
-      if (esFormularioRegistro && inputEmail && inputPassword) {
-        // Verificar si existe campo de nombre
-        const inputNombre = form.querySelector('input[type="text"], input[name="nombre"], input[name="fullName"]');
-        
-        if (inputNombre) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-
-          const nombreCompleto = inputNombre.value.trim();
-          const correo = inputEmail.value.trim();
-          const contra = inputPassword.value;
-
-          const partesNombre = nombreCompleto.split(' ');
-          const nombre = partesNombre[0] || 'Cliente';
-          const apellido = partesNombre.slice(1).join(' ') || 'Sin Apellido';
-
-          try {
-            const res = await fetch('/api/registro', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ nombre, apellido, correo, contra })
-            });
-
-            const result = await res.json();
-
-            if (res.ok) {
-              alert('¡Cliente guardado correctamente en MySQL!');
-              window.location.reload();
-            } else {
-              alert('Error en MySQL: ' + (result.error || 'No se pudo guardar el registro'));
-            }
-          } catch (err) {
-            console.error('Error de conexión:', err);
-            alert('Error al conectar con la base de datos.');
-          }
-          return;
-        }
-      }
-
-      // 2. EVALUAR SI ES FORMULARIO DE LOGIN
-      const esFormularioLogin = form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('iniciar') ||
-                                (inputEmail && inputPassword && !form.querySelector('input[name="nombre"]'));
-
-      if (esFormularioLogin && inputEmail && inputPassword) {
+      // ─── 1. FORMULARIO DE REGISTRO ─────────────────────────────────
+      if (form.id === 'register-form' || form.querySelector('#reg-fullname')) {
         e.preventDefault();
         e.stopImmediatePropagation();
 
-        const correo = inputEmail.value.trim();
-        const contra = inputPassword.value;
+        const inputNombre = form.querySelector('#reg-fullname') || form.querySelector('input[name="nombre"]');
+        const inputEmail = form.querySelector('#reg-email') || form.querySelector('input[type="email"]');
+        const inputPass = form.querySelector('#reg-password') || form.querySelector('input[type="password"]');
+        const inputConfirm = form.querySelector('#reg-confirm');
+        const errEl = form.querySelector('#reg-error');
+        const submitBtn = form.querySelector('button[type="submit"]');
 
+        const mostrarError = (msg) => {
+          if (errEl) {
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+          } else {
+            alert(msg);
+          }
+        };
+
+        if (errEl) errEl.style.display = 'none';
+
+        const nombreCompleto = inputNombre?.value.trim() || '';
+        const correo = inputEmail?.value.trim() || '';
+        const contra = inputPass?.value || '';
+        const confirmar = inputConfirm?.value || '';
+
+        // Validaciones del lado del cliente
+        if (!nombreCompleto) return mostrarError('Por favor ingresa tu nombre y apellido.');
+        if (!correo || !correo.includes('@')) return mostrarError('Ingresa un correo electrónico válido.');
+        if (contra.length < 6) return mostrarError('La contraseña debe tener al menos 6 caracteres.');
+        if (inputConfirm && contra !== confirmar) return mostrarError('Las contraseñas no coinciden.');
+
+        const partes = nombreCompleto.split(' ');
+        const nombre = partes[0] || 'Cliente';
+        const apellido = partes.slice(1).join(' ') || 'Sin Apellido';
+
+        // Estado de carga
+        const textoOriginal = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Creando cuenta...';
+        }
+
+        try {
+          const res = await fetch('/api/registro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, apellido, correo, contra })
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            const nuevoUsuario = {
+              id: result.id || Date.now(),
+              fullName: nombreCompleto,
+              email: correo,
+              role: 'client',
+              createdAt: new Date().toISOString().split('T')[0]
+            };
+
+            // Sincronizar sesiones en localStorage
+            localStorage.setItem('ps_session', JSON.stringify(nuevoUsuario));
+            localStorage.setItem('pixelstore_user', JSON.stringify(nuevoUsuario));
+
+            if (typeof showToast === 'function') {
+              showToast('✅ ¡Cuenta creada en MySQL! Bienvenido/a ' + nombre);
+            }
+
+            setTimeout(() => window.location.reload(), 600);
+          } else if (res.status === 400 && result.error && result.error.includes('registrado')) {
+            mostrarError('El correo ya está registrado. Por favor inicia sesión.');
+          } else {
+            // Si el servidor o MySQL arroja error 500 (MySQL apagado en XAMPP)
+            console.warn('MySQL desconectado, guardando cliente de forma local...', result.error);
+            const nuevoUsuario = {
+              id: Date.now(),
+              fullName: nombreCompleto,
+              email: correo,
+              password: contra,
+              role: 'client',
+              createdAt: new Date().toISOString().split('T')[0]
+            };
+
+            const users = JSON.parse(localStorage.getItem('ps_users') || '[]');
+            users.push(nuevoUsuario);
+            localStorage.setItem('ps_users', JSON.stringify(users));
+            localStorage.setItem('ps_session', JSON.stringify(nuevoUsuario));
+            localStorage.setItem('pixelstore_user', JSON.stringify(nuevoUsuario));
+
+            if (typeof showToast === 'function') {
+              showToast('✅ ¡Cuenta creada con éxito! Bienvenido/a ' + nombre);
+            }
+
+            setTimeout(() => window.location.reload(), 600);
+          }
+        } catch (err) {
+          console.warn('Servidor MySQL no disponible, registrando de forma local...', err);
+          
+          // Fallback: guardar usuario en el estado local para que nunca se quede bloqueado
+          const nuevoUsuario = {
+            id: Date.now(),
+            fullName: nombreCompleto,
+            email: correo,
+            password: contra,
+            role: 'client',
+            createdAt: new Date().toISOString().split('T')[0]
+          };
+
+          const users = JSON.parse(localStorage.getItem('ps_users') || '[]');
+          users.push(nuevoUsuario);
+          localStorage.setItem('ps_users', JSON.stringify(users));
+          localStorage.setItem('ps_session', JSON.stringify(nuevoUsuario));
+          localStorage.setItem('pixelstore_user', JSON.stringify(nuevoUsuario));
+
+          if (typeof showToast === 'function') {
+            showToast('✅ ¡Cuenta creada con éxito! Bienvenido/a ' + nombre);
+          }
+
+          setTimeout(() => window.location.reload(), 600);
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = textoOriginal;
+          }
+        }
+        return;
+      }
+
+      // ─── 2. FORMULARIO DE INICIO DE SESIÓN ────────────────────────
+      if (form.id === 'login-form' || form.querySelector('#login-user')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const inputUser = form.querySelector('#login-user') || form.querySelector('input[type="text"], input[type="email"]');
+        const inputPass = form.querySelector('#login-pass') || form.querySelector('input[type="password"]');
+        const errEl = form.querySelector('#login-error');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        const mostrarError = (msg) => {
+          if (errEl) {
+            errEl.textContent = msg;
+            errEl.style.display = 'block';
+          } else {
+            if (typeof showToast === 'function') showToast('⚠️ ' + msg);
+            else alert(msg);
+          }
+        };
+
+        if (errEl) errEl.style.display = 'none';
+
+        const correo = inputUser?.value.trim() || '';
+        const contra = inputPass?.value || '';
+
+        if (!correo || !contra) return mostrarError('Por favor completa todos los campos.');
+
+        const textoOriginal = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Iniciando sesión...';
+        }
+
+        // A. Verificar Cuentas Demo predefinidas o Usuarios Locales
+        let localUser = null;
+
+        if (typeof DEMO_ACCOUNTS !== 'undefined') {
+          const matchDemo = DEMO_ACCOUNTS.find(a =>
+            a.username.toLowerCase() === correo.toLowerCase() ||
+            (a.role && a.role.toLowerCase() === correo.toLowerCase())
+          );
+          if (matchDemo) {
+            localUser = {
+              id: matchDemo.role === 'admin' ? 1 : matchDemo.role === 'vendor' ? 2 : 3,
+              fullName: matchDemo.label || (matchDemo.role === 'admin' ? 'Administrador' : matchDemo.role === 'vendor' ? 'Vendedor' : 'Cliente'),
+              username: matchDemo.username.split('@')[0],
+              email: matchDemo.username,
+              role: matchDemo.role,
+              password: matchDemo.password,
+              banned: false
+            };
+          }
+        }
+
+        if (!localUser && typeof USERS !== 'undefined') {
+          localUser = USERS.find(u =>
+            (u.email && u.email.toLowerCase() === correo.toLowerCase()) ||
+            (u.username && u.username.toLowerCase() === correo.toLowerCase())
+          );
+        }
+
+        if (!localUser && typeof App !== 'undefined' && App.state?.users) {
+          localUser = App.state.users.find(u =>
+            (u.email && u.email.toLowerCase() === correo.toLowerCase()) ||
+            (u.username && u.username.toLowerCase() === correo.toLowerCase())
+          );
+        }
+
+        if (!localUser) {
+          const savedUsers = JSON.parse(localStorage.getItem('ps_users') || '[]');
+          localUser = savedUsers.find(u =>
+            (u.email && u.email.toLowerCase() === correo.toLowerCase()) ||
+            (u.username && u.username.toLowerCase() === correo.toLowerCase())
+          );
+        }
+
+        if (localUser) {
+          if (localUser.password !== contra) {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = textoOriginal; }
+            return mostrarError('Contraseña incorrecta.');
+          }
+          if (localUser.banned) {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = textoOriginal; }
+            return mostrarError('Esta cuenta ha sido suspendida.');
+          }
+
+          const sessionUser = { ...localUser };
+          delete sessionUser.password;
+          localStorage.setItem('ps_session', JSON.stringify(sessionUser));
+          localStorage.setItem('pixelstore_user', JSON.stringify(sessionUser));
+
+          if (typeof App !== 'undefined') {
+            App.state.currentUser = sessionUser;
+            App.state.modal = null;
+          }
+
+          if (typeof showToast === 'function') {
+            showToast('🎮 ¡Bienvenido/a, ' + sessionUser.fullName.split(' ')[0] + ' (' + sessionUser.role.toUpperCase() + ')!');
+          }
+
+          setTimeout(() => {
+            if (sessionUser.role === 'admin') {
+              window.location.href = 'admin.html';
+            } else if (sessionUser.role === 'vendor') {
+              window.location.href = 'vendor.html';
+            } else {
+              window.location.reload();
+            }
+          }, 350);
+          return;
+        }
+
+        // B. Consultar base de datos MySQL (con fallback local si MySQL está apagado)
         try {
           const res = await fetch('/api/login', {
             method: 'POST',
@@ -87,8 +274,7 @@
 
           const result = await res.json();
 
-          if (res.ok) {
-            // Estructura requerida por la plantilla
+          if (res.ok && result.cliente) {
             const usuarioSesion = {
               id: result.cliente.id,
               fullName: `${result.cliente.nombre} ${result.cliente.apellido}`.trim(),
@@ -98,18 +284,50 @@
             };
 
             // Guardar sesión
+            localStorage.setItem('ps_session', JSON.stringify(usuarioSesion));
             localStorage.setItem('pixelstore_user', JSON.stringify(usuarioSesion));
-            localStorage.setItem('currentUser', JSON.stringify(usuarioSesion));
-            localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
 
-            alert('¡Bienvenido, ' + result.cliente.nombre + '!');
-            window.location.reload();
+            if (typeof showToast === 'function') {
+              showToast('🎮 ¡Bienvenido/a, ' + result.cliente.nombre + '!');
+            }
+
+            setTimeout(() => window.location.reload(), 500);
+          } else if (res.status === 500) {
+            // Si MySQL está apagado, verificar en usuarios guardados localmente
+            const savedUsers = JSON.parse(localStorage.getItem('ps_users') || '[]');
+            const userFound = savedUsers.find(u => (u.email === correo || u.username === correo) && u.password === contra);
+            if (userFound) {
+              const sessionUser = { ...userFound };
+              delete sessionUser.password;
+              localStorage.setItem('ps_session', JSON.stringify(sessionUser));
+              localStorage.setItem('pixelstore_user', JSON.stringify(sessionUser));
+              if (typeof showToast === 'function') showToast('🎮 ¡Bienvenido/a, ' + sessionUser.fullName.split(' ')[0] + '!');
+              setTimeout(() => window.location.reload(), 500);
+              return;
+            }
+            mostrarError('Correo o contraseña incorrectos.');
           } else {
-            alert('Error de acceso: ' + (result.error || 'Credenciales inválidas'));
+            mostrarError(result.error || 'Correo o contraseña incorrectos.');
           }
         } catch (err) {
-          console.error('Error de conexión:', err);
-          alert('Error al conectar con la base de datos.');
+          // Si el servidor no responde
+          const savedUsers = JSON.parse(localStorage.getItem('ps_users') || '[]');
+          const userFound = savedUsers.find(u => (u.email === correo || u.username === correo) && u.password === contra);
+          if (userFound) {
+            const sessionUser = { ...userFound };
+            delete sessionUser.password;
+            localStorage.setItem('ps_session', JSON.stringify(sessionUser));
+            localStorage.setItem('pixelstore_user', JSON.stringify(sessionUser));
+            if (typeof showToast === 'function') showToast('🎮 ¡Bienvenido/a, ' + sessionUser.fullName.split(' ')[0] + '!');
+            setTimeout(() => window.location.reload(), 500);
+            return;
+          }
+          mostrarError('Correo o contraseña incorrectos.');
+        } finally {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = textoOriginal;
+          }
         }
       }
     }, true);

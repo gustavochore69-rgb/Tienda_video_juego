@@ -7,18 +7,202 @@ const USERS = [
 ];
 
 const GAMES = [
-  { id: 1, title: 'Zelda: Tears of the Kingdom', genres: ['accion','rpg','aventura'], genreLabel: 'Aventura · RPG', image: 'https://zeldacentral.com/wp-content/uploads/2025/03/Tears-of-the-Kingdom-wallpaper.jpg', price: 59.99, platform: 'Nintendo Switch', developer: 'Nintendo EPD', description: 'Explora los cielos y las profundidades de Hyrule en esta aventura de mundo abierto llena de magia, combate e ingenio.' },
-  { id: 2, title: 'Hollow Knight', genres: ['aventura','indie'], genreLabel: 'Aventura · Indie', image: 'https://static0.gamerantimages.com/wordpress/wp-content/uploads/2024/12/mixcollage-07-dec-2024-08-04-am-836.jpg', price: 14.99, originalPrice: 59.99, discount: 75, platform: 'PC, Switch, PS4, Xbox One', developer: 'Team Cherry', description: 'Un metroidvania dibujado a mano ambientado en el reino subterráneo de Hallownest, lleno de secretos y jefes desafiantes.' },
-  { id: 3, title: 'Resident Evil Requiem', genres: ['aventura','accion'], genreLabel: 'Survival · Acción', image: 'https://livewallpapers4free.com/wp-content/uploads/2026/02/leon-resident-evil-9-requiem-HD-live_thumb1.jpg', price: 69.99, platform: 'PS5, Xbox Series X|S, PC', developer: 'Capcom', description: 'La nueva entrega de la saga survival horror con una tensión narrativa renovada y gráficos de última generación.' },
-  { id: 4, title: 'Minecraft', genres: ['aventura','simulacion','indie'], genreLabel: 'Aventura · Survival', image: 'https://store-images.s-microsoft.com/image/apps.60323.14294656681058683.4d17bdd8-7026-429a-846f-cf7836bc9e56.a69e6905-8926-4a48-b243-14a039b97aae?mode=scale&q=90&h=1080&w=1920&format=jpg', price: 26.99, platform: 'PC, Consolas, Móvil', developer: 'Mojang Studios', description: 'Construye, explora y sobrevive en un mundo generado por bloques con posibilidades infinitas.' },
-  { id: 5, title: 'Mario Kart 8 Deluxe', genres: ['simulacion'], genreLabel: 'Carrera · Multijugador', image: 'https://images7.alphacoders.com/821/821837.jpg', price: 59.99, platform: 'Nintendo Switch', developer: 'Nintendo EPD', description: 'Carreras frenéticas multijugador con los personajes clásicos de Mario y pistas llenas de sorpresas.' },
-  { id: 6, title: 'Elden Ring', genres: ['accion','rpg'], genreLabel: 'Acción · Mundo Abierto', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg', price: 35.99, originalPrice: 59.99, discount: 40, platform: 'PS5, Xbox Series X|S, PC', developer: 'FromSoftware', description: 'Un RPG de acción en mundo abierto creado junto a George R. R. Martin, con combates exigentes y un vasto mundo por descubrir.' },
-  { id: 7, title: 'God of War', genres: ['aventura','accion'], genreLabel: 'Aventura · Acción', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/header.jpg', price: 24.99, originalPrice: 49.99, discount: 50, platform: 'PS5, PC', developer: 'Santa Monica Studio', description: 'Kratos y Atreus emprenden un viaje por los reinos nórdicos en esta épica aventura de acción.' },
-  { id: 8, title: "Baldur's Gate 3", genres: ['rpg'], genreLabel: 'RPG · Estrategia', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/header.jpg', price: 47.99, originalPrice: 59.99, discount: 20, platform: 'PC, PS5, Xbox Series X|S', developer: 'Larian Studios', description: 'Un RPG por turnos basado en Dungeons & Dragons con decisiones que moldean tu historia.' },
-  { id: 9, title: 'Cyberpunk 2077', genres: ['accion','rpg'], genreLabel: 'RPG · Ciencia Ficción', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1237970/header.jpg', price: 17.99, originalPrice: 59.99, discount: 70, platform: 'PC, PS5, Xbox Series X|S', developer: 'CD Projekt Red', description: 'Sumérgete en Night City, una metrópolis futurista repleta de tecnología, poder y peligro.' },
-  { id: 10, title: 'Hades', genres: ['indie','accion'], genreLabel: 'Roguelike · Indie', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg', price: 12.49, originalPrice: 24.99, discount: 50, platform: 'PC, Switch, PS5, Xbox Series X|S', developer: 'Supergiant Games', description: 'Un roguelike de acción donde escapas del inframundo griego combinando combate ágil y narrativa profunda.' },
-  { id: 11, title: 'Red Dead Redemption 2', genres: ['aventura','accion'], genreLabel: 'Mundo Abierto · Aventura', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/header.jpg', price: 19.79, originalPrice: 59.99, discount: 67, platform: 'PS4, Xbox One, PC', developer: 'Rockstar Games', description: 'Vive la vida de un forajido en el ocaso del salvaje oeste americano en este épico mundo abierto.' },
-  { id: 12, title: 'Civilization VI', genres: ['estrategia'], genreLabel: 'Estrategia · Turnos', image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/289070/header.jpg', price: 8.99, originalPrice: 59.99, discount: 85, platform: 'PC, Switch, PS4, Xbox One', developer: 'Firaxis Games', description: 'Construye un imperio que perdure a través de los siglos en esta aclamada estrategia por turnos.' }
+  {
+    id: 1,
+    title: 'Zelda: Tears of the Kingdom',
+    genres: ['accion','rpg','aventura'],
+    genreLabel: 'Aventura · RPG',
+    image: 'https://zeldacentral.com/wp-content/uploads/2025/03/Tears-of-the-Kingdom-wallpaper.jpg',
+    price: 59.99,
+    platform: 'Nintendo Switch',
+    developer: 'Nintendo EPD',
+    description: 'Explora los cielos y las profundidades de Hyrule en esta aventura de mundo abierto llena de magia, combate e ingenio.',
+    requirements: {
+      minimum: { os: 'Nintendo Switch OS / Win 10 (64-bit)', cpu: 'Intel Core i5-8400 / AMD Ryzen 5 2600', gpu: 'NVIDIA GTX 1060 (6GB) / AMD RX 580', ram: '8 GB RAM', storage: '18.2 GB disponible', directx: 'Versión 11 / Vulkan' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i7-10700K / AMD Ryzen 7 5800X', gpu: 'NVIDIA RTX 3070 / AMD RX 6700 XT', ram: '16 GB RAM', storage: '20 GB SSD NVMe', directx: 'Versión 12 / Vulkan' }
+    }
+  },
+  {
+    id: 2,
+    title: 'Hollow Knight',
+    genres: ['aventura','indie'],
+    genreLabel: 'Aventura · Indie',
+    image: 'https://static0.gamerantimages.com/wordpress/wp-content/uploads/2024/12/mixcollage-07-dec-2024-08-04-am-836.jpg',
+    price: 14.99,
+    originalPrice: 59.99,
+    discount: 75,
+    platform: 'PC, Switch, PS4, Xbox One',
+    developer: 'Team Cherry',
+    description: 'Un metroidvania dibujado a mano ambientado en el reino subterráneo de Hallownest, lleno de secretos y jefes desafiantes.',
+    requirements: {
+      minimum: { os: 'Windows 7 (64-bit)', cpu: 'Intel Core 2 Duo E5200', gpu: 'GeForce 9800GTX+ (512MB)', ram: '4 GB RAM', storage: '9 GB disponible', directx: 'Versión 10' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i5 3.0 GHz', gpu: 'GeForce GTX 560 / Radeon HD 6870', ram: '8 GB RAM', storage: '9 GB SSD', directx: 'Versión 11' }
+    }
+  },
+  {
+    id: 3,
+    title: 'Resident Evil Requiem',
+    genres: ['aventura','accion'],
+    genreLabel: 'Survival · Acción',
+    image: 'https://livewallpapers4free.com/wp-content/uploads/2026/02/leon-resident-evil-9-requiem-HD-live_thumb1.jpg',
+    price: 69.99,
+    platform: 'PS5, Xbox Series X|S, PC',
+    developer: 'Capcom',
+    description: 'La nueva entrega de la saga survival horror con una tensión narrativa renovada y gráficos de última generación.',
+    requirements: {
+      minimum: { os: 'Windows 10 (64-bit)', cpu: 'Intel Core i5-7500 / AMD Ryzen 3 1200', gpu: 'NVIDIA GeForce GTX 1050 Ti (4GB) / AMD Radeon RX 560', ram: '8 GB RAM', storage: '65 GB disponible', directx: 'Versión 12' },
+      recommended: { os: 'Windows 11 (64-bit)', cpu: 'Intel Core i7-8700 / AMD Ryzen 5 3600', gpu: 'NVIDIA GeForce RTX 2060 (6GB) / AMD Radeon RX 5700', ram: '16 GB RAM', storage: '65 GB SSD NVMe', directx: 'Versión 12' }
+    }
+  },
+  {
+    id: 4,
+    title: 'Minecraft',
+    genres: ['aventura','simulacion','indie'],
+    genreLabel: 'Aventura · Survival',
+    image: 'https://store-images.s-microsoft.com/image/apps.60323.14294656681058683.4d17bdd8-7026-429a-846f-cf7836bc9e56.a69e6905-8926-4a48-b243-14a039b97aae?mode=scale&q=90&h=1080&w=1920&format=jpg',
+    price: 26.99,
+    platform: 'PC, Consolas, Móvil',
+    developer: 'Mojang Studios',
+    description: 'Construye, explora y sobrevive en un mundo generado por bloques con posibilidades infinitas.',
+    requirements: {
+      minimum: { os: 'Windows 10 (64-bit)', cpu: 'Intel Core i3-3210 / AMD A8-7600 APU', gpu: 'Intel HD Graphics 4000 / AMD Radeon R5', ram: '4 GB RAM', storage: '4 GB disponible', directx: 'Versión 11' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i5-4690 / AMD FX-8350', gpu: 'GeForce 700 Series / AMD Radeon R7 240', ram: '8 GB RAM', storage: '10 GB SSD', directx: 'Versión 12' }
+    }
+  },
+  {
+    id: 5,
+    title: 'Mario Kart 8 Deluxe',
+    genres: ['simulacion'],
+    genreLabel: 'Carrera · Multijugador',
+    image: 'https://images7.alphacoders.com/821/821837.jpg',
+    price: 59.99,
+    platform: 'Nintendo Switch',
+    developer: 'Nintendo EPD',
+    description: 'Carreras frenéticas multijugador con los personajes clásicos de Mario y pistas llenas de sorpresas.',
+    requirements: {
+      minimum: { os: 'Nintendo Switch OS / Win 10 (64-bit)', cpu: 'Intel Core i5-6400 / AMD Ryzen 3 1200', gpu: 'NVIDIA GTX 1050 / AMD RX 560', ram: '8 GB RAM', storage: '7 GB disponible', directx: 'Versión 11' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i7-8700 / AMD Ryzen 5 3600', gpu: 'NVIDIA GTX 1660 Super / RTX 2060', ram: '16 GB RAM', storage: '10 GB SSD', directx: 'Versión 12' }
+    }
+  },
+  {
+    id: 6,
+    title: 'Elden Ring',
+    genres: ['accion','rpg'],
+    genreLabel: 'Acción · Mundo Abierto',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg',
+    price: 35.99,
+    originalPrice: 59.99,
+    discount: 40,
+    platform: 'PS5, Xbox Series X|S, PC',
+    developer: 'FromSoftware',
+    description: 'Un RPG de acción en mundo abierto creado junto a George R. R. Martin, con combates exigentes y un vasto mundo por descubrir.',
+    requirements: {
+      minimum: { os: 'Windows 10 (64-bit)', cpu: 'Intel Core i5-8400 / AMD Ryzen 3 3300X', gpu: 'NVIDIA GeForce GTX 1060 (3GB) / AMD Radeon RX 580 (4GB)', ram: '12 GB RAM', storage: '60 GB disponible', directx: 'Versión 12' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i7-8700K / AMD Ryzen 5 3600X', gpu: 'NVIDIA GeForce GTX 1070 (8GB) / AMD Radeon RX Vega 56', ram: '16 GB RAM', storage: '60 GB SSD', directx: 'Versión 12' }
+    }
+  },
+  {
+    id: 7,
+    title: 'God of War',
+    genres: ['aventura','accion'],
+    genreLabel: 'Aventura · Acción',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/header.jpg',
+    price: 24.99,
+    originalPrice: 49.99,
+    discount: 50,
+    platform: 'PS5, PC',
+    developer: 'Santa Monica Studio',
+    description: 'Kratos y Atreus emprenden un viaje por los reinos nórdicos en esta épica aventura de acción.',
+    requirements: {
+      minimum: { os: 'Windows 10 (64-bit)', cpu: 'Intel Core i5-2500K / AMD Ryzen 3 1200', gpu: 'NVIDIA GeForce GTX 960 (4GB) / AMD Radeon R9 290X', ram: '8 GB RAM', storage: '70 GB disponible', directx: 'Versión 11' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i5-6600K / AMD Ryzen 5 2400G', gpu: 'NVIDIA GeForce GTX 1060 (6GB) / AMD Radeon RX 570', ram: '16 GB RAM', storage: '70 GB SSD', directx: 'Versión 11' }
+    }
+  },
+  {
+    id: 8,
+    title: "Baldur's Gate 3",
+    genres: ['rpg'],
+    genreLabel: 'RPG · Estrategia',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/header.jpg',
+    price: 47.99,
+    originalPrice: 59.99,
+    discount: 20,
+    platform: 'PC, PS5, Xbox Series X|S',
+    developer: 'Larian Studios',
+    description: 'Un RPG por turnos basado en Dungeons & Dragons con decisiones que moldean tu historia.',
+    requirements: {
+      minimum: { os: 'Windows 10 (64-bit)', cpu: 'Intel Core i5-4690 / AMD FX 8350', gpu: 'NVIDIA GeForce GTX 970 / RX 480 (4GB)', ram: '8 GB RAM', storage: '150 GB disponible', directx: 'Versión 11' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i7-8700K / AMD Ryzen 5 3600', gpu: 'NVIDIA GeForce RTX 2060 Super / RX 5700 XT (8GB)', ram: '16 GB RAM', storage: '150 GB SSD NVMe', directx: 'Versión 11' }
+    }
+  },
+  {
+    id: 9,
+    title: 'Cyberpunk 2077',
+    genres: ['accion','rpg'],
+    genreLabel: 'RPG · Ciencia Ficción',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg',
+    price: 17.99,
+    originalPrice: 59.99,
+    discount: 70,
+    platform: 'PC, PS5, Xbox Series X|S',
+    developer: 'CD Projekt Red',
+    description: 'Sumérgete en Night City, una metrópolis futurista repleta de tecnología, poder y peligro.',
+    requirements: {
+      minimum: { os: 'Windows 10 (64-bit)', cpu: 'Intel Core i7-6700 / AMD Ryzen 5 1600', gpu: 'NVIDIA GeForce GTX 1060 (6GB) / Radeon RX 580', ram: '12 GB RAM', storage: '70 GB SSD disponible', directx: 'Versión 12' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i7-12700 / AMD Ryzen 7 7800X3D', gpu: 'NVIDIA GeForce RTX 3070 / Radeon RX 6800 XT', ram: '16 GB RAM', storage: '70 GB SSD NVMe', directx: 'Versión 12' }
+    }
+  },
+  {
+    id: 10,
+    title: 'Hades',
+    genres: ['indie','accion'],
+    genreLabel: 'Roguelike · Indie',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg',
+    price: 12.49,
+    originalPrice: 24.99,
+    discount: 50,
+    platform: 'PC, Switch, PS5, Xbox Series X|S',
+    developer: 'Supergiant Games',
+    description: 'Un roguelike de acción donde escapas del inframundo griego combinando combate ágil y narrativa profunda.',
+    requirements: {
+      minimum: { os: 'Windows 7 SP1+ (64-bit)', cpu: 'Dual Core 2.4 GHz', gpu: '1GB VRAM / Soporte DirectX 10+', ram: '4 GB RAM', storage: '15 GB disponible', directx: 'Versión 10' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Dual Core 3.0 GHz+', gpu: '2GB VRAM / GeForce GTX 650+', ram: '8 GB RAM', storage: '15 GB SSD', directx: 'Versión 11' }
+    }
+  },
+  {
+    id: 11,
+    title: 'Red Dead Redemption 2',
+    genres: ['aventura','accion'],
+    genreLabel: 'Mundo Abierto · Aventura',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/header.jpg',
+    price: 19.79,
+    originalPrice: 59.99,
+    discount: 67,
+    platform: 'PS4, Xbox One, PC',
+    developer: 'Rockstar Games',
+    description: 'Vive la vida de un forajido en el ocaso del salvaje oeste americano en este épico mundo abierto.',
+    requirements: {
+      minimum: { os: 'Windows 10 (64-bit)', cpu: 'Intel Core i5-2500K / AMD FX-6300', gpu: 'NVIDIA GeForce GTX 770 (2GB) / AMD Radeon R9 280', ram: '8 GB RAM', storage: '150 GB disponible', directx: 'Versión 11' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i7-4770K / AMD Ryzen 5 1500X', gpu: 'NVIDIA GeForce GTX 1060 (6GB) / AMD Radeon RX 480', ram: '12 GB RAM', storage: '150 GB SSD', directx: 'Versión 12' }
+    }
+  },
+  {
+    id: 12,
+    title: 'Civilization VI',
+    genres: ['estrategia'],
+    genreLabel: 'Estrategia · Turnos',
+    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/289070/header.jpg',
+    price: 8.99,
+    originalPrice: 59.99,
+    discount: 85,
+    platform: 'PC, Switch, PS4, Xbox One',
+    developer: 'Firaxis Games',
+    description: 'Construye un imperio que perdure a través de los siglos en esta aclamada estrategia por turnos.',
+    requirements: {
+      minimum: { os: 'Windows 7/8.1/10 (64-bit)', cpu: 'Intel Core i3 2.5 GHz / AMD Phenom II 2.6 GHz', gpu: '1 GB GeForce 450 / Radeon HD 5570', ram: '4 GB RAM', storage: '12 GB disponible', directx: 'Versión 11' },
+      recommended: { os: 'Windows 10 / 11 (64-bit)', cpu: 'Intel Core i5 2.5 GHz / AMD FX8350 4.0 GHz', gpu: '2 GB GeForce 770 / Radeon HD 7970', ram: '8 GB RAM', storage: '16 GB SSD', directx: 'Versión 11' }
+    }
+  }
 ];
 
 const CONSOLAS = [
@@ -52,7 +236,7 @@ const REVIEWS_SEED = {
 const VENDOR_PRODUCTS = [
   { id: 1, title: 'Elden Ring', price: 35.99, stock: 42, image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg' },
   { id: 2, title: 'Hollow Knight', price: 14.99, stock: 120, image: 'https://static0.gamerantimages.com/wordpress/wp-content/uploads/2024/12/mixcollage-07-dec-2024-08-04-am-836.jpg' },
-  { id: 3, title: 'Cyberpunk 2077', price: 17.99, stock: 85, image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1237970/header.jpg' }
+  { id: 3, title: 'Cyberpunk 2077', price: 17.99, stock: 85, image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg' }
 ];
 
 const VENDOR_SALES = [
