@@ -1,4 +1,4 @@
-// COMPONENTS.JS - Header, Footer, Cart, Modals, Store, Consolas, Admin, Vendor
+﻿// COMPONENTS.JS - Header, Footer, Cart, Modals, Store, Consolas, Admin, Vendor
 
 // ─── HELPERS DE RESEÑAS/CALIFICACIÓN ───────────────────────────
 function avgRating(reviews) {
@@ -766,10 +766,9 @@ function renderAdmin({ users, currentUser, vendorProducts, orders = [], sellerRe
     <!-- Products Panel -->
     <div data-admin-panel="products" style="display:none;">
       <div style="background:var(--surface);border:1px solid var(--border-subtle,rgba(255,255,255,0.05));border-radius:14px;overflow:hidden;">
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <div><h4 style="margin:0;font-size:14px;font-weight:700;color:#eef2f4;">Catálogo de productos</h4>
-          <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Administra el catálogo: agrega o elimina productos.</p></div>
-          <button data-open-add-product style="padding:8px 13px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:0;border-radius:7px;color:#070607;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;">+ Agregar producto</button>
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.05));">
+          <h4 style="margin:0;font-size:14px;font-weight:700;color:#eef2f4;">Catálogo de productos</h4>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Administra el catálogo: solo puedes eliminar productos.</p>
         </div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;">
@@ -897,12 +896,12 @@ function renderVendor({ currentUser, vendorProducts, vendorSales, orders = [] })
         `).join('')}
 
         <!-- Add product card -->
-        <div style="background:var(--surface2,rgba(255,255,255,0.01));border:2px dashed var(--border,rgba(255,255,255,0.08));border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:10px;opacity:.55;"
-          onmouseenter="this.style.borderColor='rgba(0,229,255,0.3)';this.style.background='rgba(0,229,255,0.03)'"
+        <button data-open-add-product style="background:var(--surface2,rgba(255,255,255,0.01));border:2px dashed var(--border,rgba(255,255,255,0.08));border-radius:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;gap:10px;cursor:pointer;width:100%;font-family:inherit;transition:border-color 200ms,background 200ms;"
+          onmouseenter="this.style.borderColor='rgba(0,229,255,0.35)';this.style.background='rgba(0,229,255,0.04)'"
           onmouseleave="this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='rgba(255,255,255,0.01)'">
-          <div style="font-size:32px;opacity:0.4;">+</div>
-          <div style="font-size:13px;color:var(--muted);font-weight:600;">Solo administradores agregan productos</div>
-        </div>
+          <div style="font-size:32px;opacity:0.6;color:var(--accent2);">+</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600;">Agregar producto</div>
+        </button>
       </div>
     </div>
 
@@ -990,3 +989,4 @@ function renderProfile({ currentUser, favorites, orders, notifications, sellerRe
     </section>
   </div>`;
 }
+

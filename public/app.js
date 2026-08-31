@@ -418,7 +418,7 @@ const App = {
   },
 
   async addProduct(data) {
-    if (this.state.currentUser?.role !== 'admin') {
+    if (this.state.currentUser?.role !== 'vendor') {
       return 'No tienes permiso para agregar productos.';
     }
     const title = data.title.trim();
