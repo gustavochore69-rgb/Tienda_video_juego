@@ -3256,4 +3256,100 @@ body.light .pixelbot-input {
   40% { transform: scale(1); opacity: 1; }
 }
 
+/* ============================================================
+   PRODUCT PREVIEW TOGGLE & EXTENSION DRAWER (2s ANIMATION)
+   ============================================================ */
+@media (max-width: 732px) {
+  .preview-extension-wrapper { display: none !important; }
+}
+
+.preview-extension-wrapper {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+}
+
+.preview-toggle-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 48px;
+  background: var(--surface, #17181e);
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.1));
+  border-radius: 8px;
+  color: var(--text-sub, #cfd6db);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  user-select: none;
+  flex-shrink: 0;
+  margin-top: 18px;
+  position: relative;
+  z-index: 5;
+}
+
+body.light .preview-toggle-tab {
+  background: #ffffff;
+  border-color: rgba(245,73,39,0.22);
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.preview-toggle-tab:hover {
+  background: var(--surface2, rgba(255,255,255,0.06));
+  border-color: var(--accent2, #00e5ff);
+  color: var(--accent2, #00e5ff);
+  box-shadow: 0 0 10px rgba(0,229,255,0.25);
+}
+
+body.light .preview-toggle-tab:hover {
+  background: #fdf5ef;
+  border-color: var(--accent, #f54927);
+  color: var(--accent, #f54927);
+}
+
+.preview-toggle-tab .toggle-arrow-icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 2s cubic-bezier(0.2, 0.9, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(0deg);
+}
+
+.preview-extension-wrapper.collapsed .preview-toggle-tab .toggle-arrow-icon {
+  transform: rotate(180deg);
+}
+
+.preview-extension-content {
+  width: 275px;
+  max-width: 275px;
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  margin-left: 10px;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: max-width 2s cubic-bezier(0.2, 0.9, 0.2, 1),
+              opacity 2s cubic-bezier(0.2, 0.9, 0.2, 1),
+              transform 2s cubic-bezier(0.2, 0.9, 0.2, 1),
+              margin 2s cubic-bezier(0.2, 0.9, 0.2, 1);
+  transform-origin: left center;
+}
+
+.preview-extension-wrapper.collapsed .preview-extension-content {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(-40px) scale(0.95);
+  margin-left: 0;
+  pointer-events: none;
+}
+
+#product-preview-panel {
+  width: 275px;
+  flex-shrink: 0;
+}
+
+
 

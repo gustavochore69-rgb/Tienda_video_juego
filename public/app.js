@@ -42,7 +42,7 @@ const App = {
     sellerRequests: JSON.parse(localStorage.getItem('ps_seller_requests') || '[]'),
   },
 
-  init() {
+  async init() {
     // Limpieza de datos de una versión anterior que incluía cupones.
     localStorage.removeItem('ps_active_coupon');
     // Restaurar tema
@@ -67,6 +67,7 @@ const App = {
     if (savedCart) {
       try { this.state.cart = JSON.parse(savedCart); } catch(e) {}
     }
+    await this.loadProducts();
     this.render();
     this.bindGlobal();
   },
@@ -505,6 +506,68 @@ const App = {
     showToast('✅ Precio y stock actualizados');
   },
 
+  async loadProducts() {
+    try {
+      const response = await fetch('/api/productos');
+      if (!response.ok) throw new Error('No se pudo cargar el catálogo.');
+      const products = await response.json();
+      if (Array.isArray(products) && products.length > 0) {
+        this.state.vendorProducts = products;
+      }
+    } catch (error) {
+      console.warn('Catálogo en modo demostración/local:', error.message);
+    }
+  },
+
+  async addProduct(data) {
+    if (this.state.currentUser?.role !== 'vendor') {
+      return 'No tienes permiso para agregar productos.';
+    }
+    const title = data.title.trim();
+    const price = Number(data.price);
+    const stock = Number(data.stock);
+    const cost = Number(data.cost);
+    if (!title || !data.platform || !data.category || !Number.isFinite(cost) || cost < 0 || !Number.isFinite(price) || price <= 0 || !Number.isInteger(stock) || stock < 0) {
+      return 'Revisa el nombre, plataforma, categoría, costo, precio y stock.';
+    }
+    try {
+      const response = await fetch('/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, title, price, stock, cost })
+      });
+      if (response.ok) {
+        const payload = await response.json();
+        const updated = [...this.state.vendorProducts, payload];
+        localStorage.setItem('ps_vendor_products', JSON.stringify(updated));
+        this.setState({ vendorProducts: updated, modal: null });
+        showToast('✅ Producto guardado en la base de datos.');
+        return null;
+      }
+    } catch (_error) {
+      // Si no hay conexión o no hay backend, guardamos localmente
+    }
+
+    const nextId = this.state.vendorProducts.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0) + 1;
+    const newProduct = {
+      id: nextId,
+      title,
+      platform: data.platform,
+      category: data.category,
+      cost,
+      price,
+      stock,
+      image: data.imageData || 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg',
+      description: data.description || '',
+      vendorId: this.state.currentUser.id
+    };
+    const updated = [...this.state.vendorProducts, newProduct];
+    localStorage.setItem('ps_vendor_products', JSON.stringify(updated));
+    this.setState({ vendorProducts: updated, modal: null });
+    showToast('✅ Producto guardado exitosamente.');
+    return null;
+  },
+
   // Gestión de usuarios (administrador)
   toggleUserBan(id) {
     if (id === this.state.currentUser?.id) return;
@@ -617,6 +680,7 @@ const App = {
       ${modal === 'login' ? renderLoginModal() : ''}
       ${modal === 'register' ? renderRegisterModal() : ''}
       ${modal === 'seller-request' ? renderSellerRequestModal() : ''}
+      ${modal === 'add-product' ? renderAddProductModal() : ''}
       ${modal === 'product' && selectedProduct ? renderProductModal(
         this.getProductById(selectedProduct.id, selectedProduct.type),
         selectedProduct.type,
@@ -1074,8 +1138,155 @@ const App = {
       btn.addEventListener('click', () => this.rejectSellerRequest(+btn.dataset.rejectSeller));
     });
 
-    // Vendor
-    document.getElementById('btn-add-product')?.addEventListener('click', () => showAddProductModal(this));
+    // Alta de productos exclusiva para vendedor
+    document.querySelectorAll('[data-open-add-product]').forEach(btn => {
+      btn.addEventListener('click', () => this.setState({ modal: 'add-product' }));
+    });
+    document.getElementById('btn-add-product')?.addEventListener('click', () => this.setState({ modal: 'add-product' }));
+
+    document.getElementById('add-product-form')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const submitButton = event.currentTarget.querySelector('[type="submit"]');
+      const imageFile = document.getElementById('product-image')?.files?.[0];
+      let imageData = '';
+      if (imageFile) {
+        if (imageFile.size > 2 * 1024 * 1024) {
+          const errEl = document.getElementById('add-product-error');
+          if (errEl) {
+            errEl.textContent = 'La imagen no puede superar los 2 MB.';
+            errEl.style.display = 'block';
+          }
+          return;
+        }
+        imageData = await readImageFile(imageFile);
+      }
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Guardando...';
+      }
+      const error = await this.addProduct({
+        title: document.getElementById('product-title')?.value || '',
+        platform: document.getElementById('product-platform')?.value || '',
+        category: document.getElementById('product-category')?.value || '',
+        description: document.getElementById('product-description')?.value || '',
+        cost: document.getElementById('product-cost')?.value || '0',
+        price: document.getElementById('product-price')?.value || '0',
+        stock: document.getElementById('product-stock')?.value || '0',
+        imageData
+      });
+      if (error) {
+        const message = document.getElementById('add-product-error');
+        if (message) {
+          message.textContent = error;
+          message.style.display = 'block';
+        }
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Crear producto';
+        }
+      }
+    });
+
+    document.getElementById('product-image')?.addEventListener('change', event => {
+      const file = event.target.files[0];
+      const nameEl = document.getElementById('product-image-name');
+      if (nameEl) {
+        nameEl.textContent = file ? `${file.name} (${Math.ceil(file.size / 1024)} KB)` : 'Ningún archivo seleccionado.';
+      }
+      // Update preview image
+      const previewImg = document.getElementById('preview-img');
+      const previewPlaceholder = document.getElementById('preview-img-placeholder');
+      if (file && previewImg && previewPlaceholder) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          previewImg.src = e.target.result;
+          previewImg.style.display = 'block';
+          previewPlaceholder.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      } else if (previewImg && previewPlaceholder) {
+        previewImg.src = '';
+        previewImg.style.display = 'none';
+        previewPlaceholder.style.display = 'flex';
+      }
+    });
+
+    // ── Live product preview ──────────────────────────────────────
+    const _syncProductPreview = () => {
+      const title    = document.getElementById('product-title')?.value.trim() || '';
+      const platform = document.getElementById('product-platform')?.value || '';
+      const category = document.getElementById('product-category')?.value || '';
+      const price    = parseFloat(document.getElementById('product-price')?.value) || 0;
+      const stock    = document.getElementById('product-stock')?.value;
+      const desc     = document.getElementById('product-description')?.value.trim() || '';
+
+      // Title
+      const previewTitle = document.getElementById('preview-title');
+      if (previewTitle) {
+        previewTitle.textContent = title || 'Nombre del producto';
+        previewTitle.style.color = title ? 'var(--text-strong,#eef2f4)' : 'rgba(255,255,255,0.25)';
+      }
+
+      // Platform badge
+      const platformBadge = document.getElementById('preview-platform-badge');
+      if (platformBadge) {
+        if (platform) { platformBadge.textContent = platform; platformBadge.style.display = 'block'; }
+        else { platformBadge.style.display = 'none'; }
+      }
+
+      // Category badge
+      const catBadge = document.getElementById('preview-category-badge');
+      if (catBadge) {
+        if (category) { catBadge.textContent = category; catBadge.style.opacity = '1'; }
+        else { catBadge.style.opacity = '0'; }
+      }
+
+      // Price
+      const previewPrice = document.getElementById('preview-price');
+      if (previewPrice) {
+        previewPrice.textContent = price > 0 ? `$${price.toFixed(2)}` : '—';
+      }
+
+      // Stock chip
+      const stockChip = document.getElementById('preview-stock-chip');
+      const stockText = document.getElementById('preview-stock-text');
+      if (stockChip && stockText) {
+        const stockNum = parseInt(stock, 10);
+        if (!isNaN(stockNum) && stock !== '') {
+          stockText.textContent = `Stock: ${stockNum} unidad${stockNum === 1 ? '' : 'es'}`;
+          stockChip.style.opacity = '1';
+        } else {
+          stockChip.style.opacity = '0';
+        }
+      }
+
+      // Description
+      const previewDesc = document.getElementById('preview-description');
+      if (previewDesc) {
+        if (desc) { previewDesc.textContent = desc; previewDesc.style.opacity = '1'; }
+        else { previewDesc.style.opacity = '0'; }
+      }
+    };
+
+    ['product-title','product-platform','product-category','product-price','product-stock','product-description'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', _syncProductPreview);
+      document.getElementById(id)?.addEventListener('change', _syncProductPreview);
+    });
+    _syncProductPreview(); // initial state
+
+    // Toggle extensión vista previa (animación 2s)
+    const previewToggleBtn = document.getElementById('btn-toggle-preview');
+    const previewWrapper = document.getElementById('preview-extension-wrapper');
+    if (previewToggleBtn && previewWrapper) {
+      previewToggleBtn.addEventListener('click', () => {
+        previewWrapper.classList.toggle('collapsed');
+        const isCollapsed = previewWrapper.classList.contains('collapsed');
+        previewToggleBtn.setAttribute('aria-expanded', !isCollapsed);
+        previewToggleBtn.setAttribute('title', isCollapsed ? 'Mostrar vista previa' : 'Ocultar vista previa');
+      });
+    }
+
+    // Vendor tabs
     document.querySelectorAll('[data-vendor-tab]').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('[data-vendor-tab]').forEach(b => b.classList.remove('active-tab'));
@@ -1282,17 +1493,13 @@ function bindRegisterForm(form, app) {
   });
 }
 
-function showAddProductModal(app) {
-  const title = prompt('Nombre del producto:');
-  if (!title || !title.trim()) return;
-  const priceStr = prompt('Precio ($):');
-  const price = parseFloat(priceStr);
-  if (isNaN(price) || price <= 0) { alert('Precio inválido.'); return; }
-  const newProd = { id: Date.now(), title: title.trim(), price, stock: 0, image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg' };
-  const updated = [...app.state.vendorProducts, newProd];
-  localStorage.setItem('ps_vendor_products', JSON.stringify(updated));
-  app.setState({ vendorProducts: updated });
-  showToast('✅ Producto agregado');
+function readImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+    reader.readAsDataURL(file);
+  });
 }
 
 // Start
